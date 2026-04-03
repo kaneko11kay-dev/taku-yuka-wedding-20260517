@@ -3,89 +3,703 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Photo Wedding Invitation</title>
+<title>Wedding Invitation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Cinzel:wght@400;500&family=Noto+Serif+JP:wght@200;300;400&display=swap" rel="stylesheet">
+
 <style>
+  :root {
+    --ivory: #faf7f2;
+    --cream: #f3ede3;
+    --gold: #b8975a;
+    --gold-light: #d4b87a;
+    --rose: #c9a89a;
+    --muted: #8a7a72;
+    --dark: #2e2520;
+    --sage: #a8b5a2;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
   body {
-    margin: 0;
-    padding: 0;
-    background: #f7f5f0;
-    font-family: "Hiragino Sans", "Noto Sans JP", sans-serif;
+    background: var(--ivory);
+    color: var(--dark);
+    font-family: 'Noto Serif JP', serif;
+    overflow-x: hidden;
+  }
+
+  /* ── Grain overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* ══════════ HERO / INVITATION ══════════ */
+  .hero {
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 40px 10px;
+    justify-content: center;
+    padding: 60px 20px;
+    position: relative;
+    background: linear-gradient(160deg, #faf7f2 0%, #f3ede3 60%, #ede4d8 100%);
   }
 
-  .image-container {
-    max-width: 800px;
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 120px;
+    background: linear-gradient(to bottom, transparent, var(--ivory));
+    pointer-events: none;
+  }
+
+  /* Decorative corner flourishes */
+  .hero-frame {
+    position: absolute;
+    inset: 30px;
+    pointer-events: none;
+  }
+  .hero-frame::before,
+  .hero-frame::after,
+  .corner-br,
+  .corner-bl {
+    content: '';
+    position: absolute;
+    width: 60px;
+    height: 60px;
+  }
+  .hero-frame::before {
+    top: 0; left: 0;
+    border-top: 1.5px solid var(--gold);
+    border-left: 1.5px solid var(--gold);
+  }
+  .hero-frame::after {
+    top: 0; right: 0;
+    border-top: 1.5px solid var(--gold);
+    border-right: 1.5px solid var(--gold);
+  }
+  .corner-br {
+    bottom: 0; right: 0;
+    border-bottom: 1.5px solid var(--gold);
+    border-right: 1.5px solid var(--gold);
+  }
+  .corner-bl {
+    bottom: 0; left: 0;
+    border-bottom: 1.5px solid var(--gold);
+    border-left: 1.5px solid var(--gold);
+  }
+
+  .eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 5px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 1s ease forwards 0.3s;
+  }
+
+  .invitation-photo {
+    position: relative;
     width: 100%;
-    margin-bottom: 40px;
+    max-width: 680px;
+    opacity: 0;
+    animation: fadeUp 1.2s ease forwards 0.6s;
   }
 
-  .image-container img {
+  .invitation-photo::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border: 1px solid rgba(184,151,90,0.3);
+    border-radius: 2px;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .invitation-photo img {
     width: 100%;
     height: auto;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: block;
+    border-radius: 2px;
+    box-shadow:
+      0 2px 6px rgba(0,0,0,0.06),
+      0 12px 40px rgba(0,0,0,0.12),
+      0 30px 80px rgba(0,0,0,0.08);
+  }
+
+  /* Gold ribbon tab on photo */
+  .photo-ribbon {
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--gold);
+    color: #fff;
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: 3px;
+    padding: 5px 20px;
+    z-index: 3;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 40px 0 20px;
+    opacity: 0;
+    animation: fadeUp 1s ease forwards 1s;
+  }
+  .divider-line {
+    width: 80px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold));
+  }
+  .divider-line.right {
+    background: linear-gradient(to left, transparent, var(--gold));
+  }
+  .divider-icon {
+    font-size: 18px;
+    color: var(--gold);
+  }
+
+  /* ══════════ LOCATION LINKS ══════════ */
+  .links-section {
+    padding: 20px 20px 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    animation: fadeUp 1s ease forwards 1.2s;
+    background: linear-gradient(180deg, #ede8df 0%, var(--ivory) 100%);
   }
 
   .links-card {
-    background: #ffffff;
-    padding: 25px 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    max-width: 800px;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(184,151,90,0.2);
+    border-radius: 2px;
+    padding: 32px 36px;
+    max-width: 560px;
     width: 100%;
-    box-sizing: border-box;
   }
 
-  .links-card h2 {
-    margin-top: 0;
-    font-size: 22px;
-    margin-bottom: 15px;
-    letter-spacing: 1px;
+  .links-card-title {
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-align: center;
+    margin-bottom: 24px;
   }
 
   .link-item {
-    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid rgba(184,151,90,0.15);
+  }
+  .link-item:last-child { border-bottom: none; }
+
+  .link-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .link-info { flex: 1; }
+  .link-label {
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 300;
+    font-size: 14px;
+    color: var(--dark);
+    line-height: 1.5;
+  }
+  .link-sub {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .link-arrow {
+    color: var(--gold);
+    font-size: 18px;
+    transition: transform 0.3s ease;
   }
 
   .link-item a {
-    color: #3a6ea5;
+    display: flex;
+    align-items: center;
+    gap: 14px;
     text-decoration: none;
+    width: 100%;
+    transition: opacity 0.3s;
+  }
+  .link-item a:hover { opacity: 0.75; }
+  .link-item a:hover .link-arrow { transform: translateX(4px); }
+
+  /* ══════════ PERSON SECTION ══════════ */
+  .person-section {
+    padding: 80px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(180deg, #e4dbd0 0%, #ede8df 100%);
+    position: relative;
+  }
+
+  .section-label {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 5px;
+    color: var(--gold);
+    text-align: center;
+    margin-bottom: 48px;
+    position: relative;
+  }
+  .section-label::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 1px;
+    background: var(--gold);
+  }
+
+  .person-card {
+    max-width: 440px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .person-photo-wrap {
+    position: relative;
+    margin-bottom: 32px;
+  }
+
+  .person-photo-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -12px;
+    border: 1px solid rgba(184,151,90,0.25);
+    border-radius: 50%;
+  }
+  .person-photo-wrap::after {
+    content: '';
+    position: absolute;
+    inset: -22px;
+    border: 1px dashed rgba(184,151,90,0.15);
+    border-radius: 50%;
+  }
+
+  .person-photo {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    border: 4px solid var(--ivory);
+  }
+
+  .person-name-ja {
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 300;
+    font-size: 28px;
+    letter-spacing: 6px;
+    color: var(--dark);
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .person-name-en {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
     font-size: 18px;
-    transition: 0.2s;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 24px;
   }
 
-  .link-item a:hover {
-    color: #1f4f7a;
-    text-decoration: underline;
+  .profile-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid rgba(184,151,90,0.25);
+    padding: 8px 20px;
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 200;
+    font-size: 14px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    border-radius: 100px;
+  }
+  .profile-tag span { color: var(--gold); }
+
+  /* ══════════ COUNTDOWN ══════════ */
+  .countdown-section {
+    padding: 80px 20px 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--dark);
+    position: relative;
+    overflow: hidden;
   }
 
+  .countdown-section::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 60% at 20% 50%, rgba(184,151,90,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 80% 30%, rgba(201,168,154,0.06) 0%, transparent 70%);
+  }
+
+  .countdown-eyebrow {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 5px;
+    color: rgba(184,151,90,0.7);
+    text-align: center;
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  .countdown-date {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(32px, 6vw, 52px);
+    font-weight: 300;
+    color: #faf7f2;
+    letter-spacing: 4px;
+    text-align: center;
+    margin-bottom: 52px;
+    position: relative;
+  }
+  .countdown-date em {
+    font-style: normal;
+    color: var(--gold-light);
+  }
+
+  .countdown-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    max-width: 500px;
+    width: 100%;
+    position: relative;
+  }
+
+  .countdown-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .countdown-box {
+    width: 100%;
+    aspect-ratio: 1;
+    max-width: 100px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(184,151,90,0.2);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .countdown-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 50%;
+    background: rgba(255,255,255,0.02);
+  }
+
+  .countdown-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 400;
+    color: #faf7f2;
+    line-height: 1;
+    position: relative;
+    transition: transform 0.3s ease;
+  }
+
+  .countdown-ato {
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 200;
+    font-size: 22px;
+    letter-spacing: 6px;
+    color: rgba(250,247,242,0.5);
+    text-align: center;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .countdown-label {
+    font-family: 'Noto Serif JP', serif;
+    font-weight: 200;
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: rgba(184,151,90,0.7);
+  }
+
+  .countdown-ended {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-style: italic;
+    color: var(--gold-light);
+    text-align: center;
+    letter-spacing: 2px;
+  }
+
+  /* ── Scroll indicator ── */
+  .scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    opacity: 0;
+    animation: fadeIn 1s ease forwards 2s;
+    cursor: default;
+  }
+  .scroll-hint span {
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    letter-spacing: 3px;
+    color: var(--gold);
+  }
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    animation: scrollAnim 2s ease-in-out infinite;
+  }
+
+  /* ══════════ ANIMATIONS ══════════ */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes scrollAnim {
+    0%, 100% { transform: scaleY(0.5); transform-origin: top; opacity: 0.5; }
+    50%       { transform: scaleY(1);   transform-origin: top; opacity: 1; }
+  }
+
+  /* Scroll-triggered fade */
+  .scroll-reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.9s ease, transform 0.9s ease;
+  }
+  .scroll-reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  @media (max-width: 520px) {
+    .hero-frame { inset: 16px; }
+    .links-card { padding: 24px 20px; }
+    .countdown-grid { gap: 10px; }
+  }
 </style>
 </head>
 <body>
 
-<div class="image-container">
-  <img src="invitation.jpg" alt="Photo Wedding Invitation">
-</div>
-
-<div class="links-card">
-  <h2>🐈 場所リンク</h2>
-
-  <div class="link-item">
-    <a href="https://www.google.co.jp/maps/place/%E3%83%95%E3%82%A7%E3%83%AA%E3%83%BC%E3%83%81%E3%82%A7%E3%82%AC%E3%83%BC%E3%83%87%E3%83%B3%E6%97%A5%E6%AF%94%E8%B0%B7/@35.6741159,139.7574367,16.5z/data=!4m5!3m4!1s0x60188bf1843f2b4b:0x7e36c05e5f418fb4!8m2!3d35.6754606!4d139.7579521" target="_blank">
-      フェリーチェガーデン日比谷（Google Maps）
-    </a>
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-frame">
+    <div class="corner-br"></div>
+    <div class="corner-bl"></div>
   </div>
 
-  <div class="link-item">
-    <a href="https://felice-g-hibiya.com/" target="_blank">
-      日比谷公園 公式サイト
-    </a>
+  <p class="eyebrow">Wedding Invitation</p>
+
+  <div class="invitation-photo">
+    <!-- <div class="photo-ribbon">INVITATION</div> -->
+    <img src="invitation.jpg" alt="Wedding Invitation">
   </div>
 
-</div>
+  <div class="divider">
+    <div class="divider-line"></div>
+    <span class="divider-icon">✦</span>
+    <div class="divider-line right"></div>
+  </div>
 
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- ══ LINKS ══ -->
+<section class="links-section">
+  <div class="links-card scroll-reveal">
+    <p class="links-card-title">VENUE &amp; ACCESS</p>
+
+    <div class="link-item">
+      <a href="https://www.google.co.jp/maps/place/%E3%83%95%E3%82%A7%E3%83%AA%E3%83%BC%E3%83%81%E3%82%A7%E3%82%AC%E3%83%BC%E3%83%87%E3%83%B3%E6%97%A5%E6%AF%94%E8%B0%B7/@35.6741159,139.7574367,16.5z/data=!4m5!3m4!1s0x60188bf1843f2b4b:0x7e36c05e5f418fb4!8m2!3d35.6754606!4d139.7579521" target="_blank">
+        <div class="link-icon">📍</div>
+        <div class="link-info">
+          <div class="link-label">フェリーチェガーデン日比谷 Google Maps</div>
+          <div class="link-sub">GOOGLE MAPS</div>
+        </div>
+        <span class="link-arrow">→</span>
+      </a>
+    </div>
+
+    <div class="link-item">
+      <a href="https://felice-g-hibiya.com/" target="_blank">
+        <div class="link-icon">🌿</div>
+        <div class="link-info">
+          <div class="link-label">日比谷公園 公式サイト</div>
+          <div class="link-sub">OFFICIAL WEBSITE</div>
+        </div>
+        <span class="link-arrow">→</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ PERSON ══ -->
+<section class="person-section">
+  <p class="section-label scroll-reveal">PROFILE</p>
+
+  <div class="person-card scroll-reveal">
+    <div class="person-photo-wrap">
+      <img class="person-photo" src="parson1.jpg" alt="金湖拓土">
+    </div>
+
+    <p class="person-name-ja">金 湖　拓 土</p>
+    <p class="person-name-en">Kaneko Takuto</p>
+
+    <div class="profile-tag">
+      <span>🐈</span> 猫好き
+    </div>
+  </div>
+</section>
+
+<section class="person-section">
+  <p class="section-label scroll-reveal">PROFILE</p>
+
+  <div class="person-card scroll-reveal">
+    <div class="person-photo-wrap">
+      <img class="person-photo" src="parson2.jpg" alt="鳳優佳">
+    </div>
+
+    <p class="person-name-ja">鳳　優 佳</p>
+    <p class="person-name-en">Otori Yuka</p>
+
+    <div class="profile-tag">
+      <span>🐈</span> 猫好き
+    </div>
+  </div>
+</section>
+
+<!-- ══ COUNTDOWN ══ -->
+<section class="countdown-section">
+  <p class="countdown-eyebrow scroll-reveal">UNTIL THE CEREMONY</p>
+  <p class="countdown-date scroll-reveal"><em>May 17</em> · 2026 · <em>15:30</em></p>
+
+  <p class="countdown-ato scroll-reveal">あと</p>
+
+  <div class="countdown-grid scroll-reveal" id="countdown">
+    <div class="countdown-item">
+      <div class="countdown-box"><span class="countdown-num" id="days">--</span></div>
+      <span class="countdown-label">日</span>
+    </div>
+    <div class="countdown-item">
+      <div class="countdown-box"><span class="countdown-num" id="hours">--</span></div>
+      <span class="countdown-label">時間</span>
+    </div>
+    <div class="countdown-item">
+      <div class="countdown-box"><span class="countdown-num" id="minutes">--</span></div>
+      <span class="countdown-label">分</span>
+    </div>
+    <div class="countdown-item">
+      <div class="countdown-box"><span class="countdown-num" id="seconds">--</span></div>
+      <span class="countdown-label">秒</span>
+    </div>
+  </div>
+</section>
+
+<script>
+  // ── Scroll reveal ──────────────────────────────────────
+  const reveals = document.querySelectorAll('.scroll-reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); }
+    });
+  }, { threshold: 0.15 });
+  reveals.forEach(el => observer.observe(el));
+
+  // ── Countdown ─────────────────────────────────────────
+  // ★ ここの日付・時刻を実際の挙式日時に変更 (例: '2026-10-10T15:00:00+09:00')
+  const target = new Date('2026-05-17T15:30:00+09:00');
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function tick() {
+    const now  = new Date();
+    const diff = target - now;
+
+    if (diff <= 0) {
+      document.getElementById('countdown').innerHTML =
+        '<p class="countdown-ended" style="grid-column:1/-1">Happy Wedding Day 🎊</p>';
+      return;
+    }
+
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000)  / 60000);
+    const s = Math.floor((diff % 60000)    / 1000);
+
+    document.getElementById('days').textContent    = pad(d);
+    document.getElementById('hours').textContent   = pad(h);
+    document.getElementById('minutes').textContent = pad(m);
+    document.getElementById('seconds').textContent = pad(s);
+  }
+
+  tick();
+  setInterval(tick, 1000);
+</script>
 </body>
 </html>
