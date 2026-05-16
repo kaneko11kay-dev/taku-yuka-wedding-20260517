@@ -7,22 +7,27 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{width:100%;height:100%;background:#1a0a2e;overflow:hidden;touch-action:none}
+/* ── スケーリング用ラッパー ── */
 #wrapper{
-  position:relative;width:100%;height:100%;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  position:absolute;
+  /* JS で top/left を計算して配置、transform-origin は左上 */
+  transform-origin:top left;
+  /* 固有サイズ = ゲーム解像度そのまま */
+  width:512px;
 }
 #ui-bar{
   color:#fff;font-size:13px;font-family:'Courier New',monospace;
   text-shadow:1px 1px #000;letter-spacing:1px;
   display:flex;gap:0;padding:5px 0 3px;
-  width:512px;justify-content:space-around;flex-shrink:0;
+  width:512px;justify-content:space-around;
   background:rgba(0,0,0,0.4);border-radius:4px 4px 0 0;
 }
 #ui-bar div{text-align:center;padding:2px 4px}
 canvas{
   display:block;
   image-rendering:pixelated;image-rendering:crisp-edges;
-  border:3px solid #fff;flex-shrink:0;
+  border:3px solid #fff;
+  /* 内在サイズ固定 — JS の style 変更は不要 */
   width:512px;height:448px;
 }
 /* ── Mobile controls ── */
@@ -543,20 +548,9 @@ window.addEventListener('resize',()=>{chkOrientation();resizeCanvas();});
 window.addEventListener('orientationchange',()=>setTimeout(()=>{chkOrientation();resizeCanvas();},350));
 chkOrientation();
 
-/* ── キャンバス スケーリング ── */
+/* ── キャンバス スケーリング（transform:scale 方式に委譲） ── */
 function resizeCanvas(){
-  const ctrlEl = document.getElementById('ctrl');
-  const ctrlVisible = ctrlEl && ctrlEl.style.display !== 'none';
-  const ctrlH = ctrlVisible ? 152 : 28;
-  const uiH   = 38;
-  const maxW  = window.innerWidth;
-  const maxH  = window.innerHeight - ctrlH - uiH;
-  const sc    = Math.min(maxW/CW, maxH/CH);
-  canvas.style.width  = (CW*sc)+'px';
-  canvas.style.height = (CH*sc)+'px';
-  const uiEl = document.getElementById('ui-bar');
-  uiEl.style.width    = (CW*sc)+'px';
-  uiEl.style.fontSize = Math.max(9, Math.round(12*sc))+'px';
+  if(window._fitToScreen) window._fitToScreen();
 }
 resizeCanvas();
 
@@ -1319,38 +1313,53 @@ function loop(){ update(); draw(); requestAnimationFrame(loop); }
 loop();
 </script>
 
-<!-- ── 画面サイズに合わせてキャンバスをフィット ── -->
+<!-- ── transform:scale 方式でゲーム画面をフィット ── -->
 <script>
 (function(){
-  const GAME_W = 512, GAME_H = 448;
-  const canvas  = document.getElementById('c');
+  const GAME_W  = 512;
+  const GAME_H  = 448; // canvas のみの高さ
+  const UI_H    = 32;  // #ui-bar の概算高さ（border込み）
+  const TOTAL_H = GAME_H + UI_H; // wrapper 全体の高さ
+
+  const wrapper = document.getElementById('wrapper');
   const uiBar   = document.getElementById('ui-bar');
   const ctrl    = document.getElementById('ctrl');
 
   function fitToScreen(){
-    const isTouch = 'ontouchstart' in window;
-    const ctrlH   = (isTouch && ctrl && ctrl.style.display !== 'none') ? 130 : 0;
-    const uiH     = uiBar.offsetHeight || 30;
-    const avW     = window.innerWidth;
-    const avH     = window.innerHeight - uiH - ctrlH;
-    const scale   = Math.min(avW / GAME_W, avH / GAME_H, 1); // 1 = 最大等倍
-    const cw      = Math.round(GAME_W * scale);
-    const ch      = Math.round(GAME_H * scale);
-    canvas.style.width  = cw + 'px';
-    canvas.style.height = ch + 'px';
-    uiBar.style.width   = cw + 'px';
-    // UI文字サイズをスケールに応じて縮小
+    const isTouch    = 'ontouchstart' in window;
+    const ctrlH      = (isTouch && ctrl && ctrl.style.display !== 'none') ? 150 : 0;
+    const avW        = window.innerWidth;
+    const avH        = window.innerHeight - ctrlH;
+
+    // スケールは画面幅・高さ両方に収まる最大値（上限なし）
+    const scale = Math.min(avW / GAME_W, avH / TOTAL_H);
+
+    // wrapper を scale 変換：transform-origin:top left なので
+    // 画面中央に置くために left/top を手計算
+    const scaledW = GAME_W  * scale;
+    const scaledH = TOTAL_H * scale;
+    const left    = (avW - scaledW) / 2;
+    const top     = (avH - scaledH) / 2;
+
+    wrapper.style.transform = `scale(${scale})`;
+    wrapper.style.left      = left  + 'px';
+    wrapper.style.top       = top   + 'px';
+
+    // ui-bar のフォントサイズだけ補正（canvas 内描画には不要）
     uiBar.style.fontSize = Math.max(9, Math.round(13 * scale)) + 'px';
   }
 
   window.addEventListener('resize', fitToScreen);
-  window.addEventListener('orientationchange', () => setTimeout(fitToScreen, 150));
-  // 初期実行：DOM確定後
+  window.addEventListener('orientationchange', () => setTimeout(fitToScreen, 200));
+
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', fitToScreen);
   } else {
     fitToScreen();
   }
+
+  // ゲーム内 resizeCanvas() からも呼べるようにグローバル公開
+  window._fitToScreen = fitToScreen;
 })();
 </script>
 
