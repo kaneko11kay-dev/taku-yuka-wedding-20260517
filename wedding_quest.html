@@ -59,16 +59,10 @@ canvas{
   background:rgba(220,30,30,0.22);border-color:rgba(255,80,80,0.6);
 }
 #bj.act{background:rgba(220,30,30,0.50)}
-/* UP ボタン（ジャンプ補助） */
-#bup{
-  width:72px;height:72px;left:50px;bottom:128px;font-size:26px;
-  background:rgba(50,50,220,0.18);border-color:rgba(100,130,255,0.55);
-}
-#bup.act{background:rgba(50,50,220,0.45)}
 /* START */
 #bstart{
   width:64px;height:32px;border-radius:16px;
-  bottom:118px;right:128px;font-size:10px;
+  bottom:68px;right:128px;font-size:10px;
   background:rgba(80,80,255,0.22);border-color:rgba(120,120,255,0.55);
 }
 /* トグルボタン（PC向け） */
@@ -251,7 +245,6 @@ canvas{
 </div>
 <div id="ctrl">
   <div class="gbtn" id="bl">◀</div>
-  <div class="gbtn" id="bup">▲</div>
   <div class="gbtn" id="br">▶</div>
   <div class="gbtn" id="bj">JUMP</div>
   <div class="gbtn" id="bstart">START</div>
@@ -532,7 +525,7 @@ function setupTouch(){
     el.addEventListener('mouseleave',()=>{keys[code]=false;el.classList.remove('act');});
   }
   tbtn('bl','ArrowLeft'); tbtn('br','ArrowRight');
-  tbtn('bup','Space'); tbtn('bj','Space');
+  tbtn('bj','Space');
   tbtn('bstart','Space');
 }
 setupTouch();
@@ -1326,23 +1319,30 @@ loop();
   const ctrl    = document.getElementById('ctrl');
 
   function fitToScreen(){
-    const avW   = window.innerWidth;
-    const avH   = window.innerHeight;
-    // モバイルボタンの実測高さ（非表示なら0）
-    const ctrlH = (ctrl && ctrl.style.display !== 'none') ? (ctrl.offsetHeight || 150) : 0;
+    const avW = window.innerWidth;
+    const avH = window.innerHeight;
 
-    // ゲームが収まる最大スケール（ボタン分を高さから除く）
-    const scale   = Math.min(avW / GAME_W, (avH - ctrlH) / TOTAL_H);
+    // ui-bar の実測高さ（初回は推定値 36 を使用）
+    const uiH  = uiBar.offsetHeight || 36;
+    // ゲームコンテンツ総高さ = ui-bar + canvas(border含む)
+    const totalH = uiH + GAME_H + 6; // 6 = border 3px×2
+
+    // スマホ時：下部ボタン(#ctrl height=150px)がオーバーレイするので
+    // ゲームが隠れないよう、上半分の空き高さでスケールを決める
+    const ctrlH  = (ctrl && ctrl.style.display !== 'none') ? 150 : 0;
+    const usableH = avH - ctrlH;
+
+    const scale   = Math.min(avW / GAME_W, usableH / totalH);
     const scaledW = GAME_W  * scale;
-    const scaledH = TOTAL_H * scale;
+    const scaledH = totalH  * scale;
 
-    // 水平中央、垂直はボタン上の空きの中央
-    const left = (avW - scaledW) / 2;
-    const top  = ((avH - ctrlH) - scaledH) / 2;
+    // 水平中央、垂直はボタン上の空きで中央
+    const left = (avW   - scaledW) / 2;
+    const top  = (usableH - scaledH) / 2;
 
     wrapper.style.transform = `scale(${scale})`;
     wrapper.style.left      = left + 'px';
-    wrapper.style.top       = top  + 'px';
+    wrapper.style.top       = Math.max(0, top) + 'px';
 
     uiBar.style.fontSize = Math.max(9, Math.round(13 * scale)) + 'px';
   }
