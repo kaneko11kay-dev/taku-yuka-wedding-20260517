@@ -21,14 +21,14 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; scroll-padding-top: 64px; }
 
   body {
     background: var(--ivory);
     color: var(--dark);
     font-family: 'Noto Serif JP', serif;
     overflow-x: hidden;
+    padding-top: 64px;
   }
 
   /* ── Grain overlay ── */
@@ -42,6 +42,252 @@
     opacity: 0.4;
   }
 
+  /* ══════════════════════════════════════
+     サイトヘッダー
+  ══════════════════════════════════════ */
+  .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    z-index: 9998;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px 0 28px;
+    background: var(--dark);
+    border-bottom: 1px solid rgba(184,151,90,0.25);
+  }
+
+  /* ヘッダーロゴ */
+  .header-logo {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+    text-decoration: none;
+    gap: 4px;
+  }
+  .header-logo-ty {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: 3px;
+    color: var(--ivory);
+    transition: color 0.3s;
+  }
+  .header-logo-ty:hover { color: var(--gold-light); }
+  .header-logo-wedding {
+    font-family: 'Cinzel', serif;
+    font-size: 8px;
+    letter-spacing: 6px;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  /* ヘッダーの区切り線（ロゴとボタンの間） */
+  .header-rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(184,151,90,0.4), transparent);
+    margin: 0 24px;
+  }
+
+  /* ── ヘッダー内ハンバーガーボタン ── */
+  /* ══════════════════════════════════════
+     ハンバーガーメニュー
+  ══════════════════════════════════════ */
+
+  /* ── メニューボタン（ヘッダー右端） ── */
+  .sp-menu-btn_01 {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.3);
+    position: relative;
+    right: auto;
+    top: auto;
+    width: 44px;
+    height: 44px;
+    cursor: pointer;
+    z-index: 9999;
+    border-radius: 50%;
+    transition: background 0.3s, border-color 0.3s;
+    flex-shrink: 0;
+  }
+  .sp-menu-btn_01:hover {
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.6);
+  }
+  .sp-menu-btn_01 .line {
+    display: block;
+    position: absolute;
+    width: 20px;
+    height: 1px;
+    right: 12px;
+    background: rgba(250,247,242,0.9);
+    transition: 0.3s ease-in-out;
+  }
+  .sp-menu-btn_01 span:nth-child(1) { top: 14px; }
+  .sp-menu-btn_01 span:nth-child(2) { top: 21px; }
+  .sp-menu-btn_01 span:nth-child(3) { top: 28px; }
+
+  /* ボタンが開いているとき → ✕ に変化 */
+  .sp-menu-btn_01.active span:nth-child(1) {
+    top: 21px;
+    transform: rotate(-45deg);
+  }
+  .sp-menu-btn_01.active span:nth-child(2) {
+    opacity: 0;
+  }
+  .sp-menu-btn_01.active span:nth-child(3) {
+    top: 21px;
+    transform: rotate(45deg);
+  }
+
+  /* ── スライドインナビ ── */
+  .header__navi_01 {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(320px, 80vw);
+    height: 100vh;
+    background: linear-gradient(160deg, #0c0a10 0%, #1a1225 50%, #0f0c18 100%);
+    border-left: 1px solid rgba(184,151,90,0.3);
+    transform: translateX(100%);
+    transition: transform 0.5s cubic-bezier(0.77,0,0.18,1);
+    z-index: 9998;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 40px;
+  }
+
+  /* T&Y Wedding ウォーターマーク */
+  .nav-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    pointer-events: none;
+    z-index: 0;
+    white-space: nowrap;
+  }
+  .nav-watermark-ty {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(72px, 22vw, 100px);
+    font-weight: 300;
+    color: rgba(184, 151, 90, 0.10);
+    line-height: 1;
+    letter-spacing: 6px;
+    display: block;
+  }
+  .nav-watermark-wedding {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(10px, 3vw, 13px);
+    letter-spacing: 8px;
+    color: rgba(184, 151, 90, 0.07);
+    display: block;
+    margin-top: 6px;
+  }
+
+  /* ナビ内要素をウォーターマークの前面に */
+  .nav-logo,
+  .header__navi_01 ul,
+  .nav-footer {
+    position: relative;
+    z-index: 1;
+  }
+  .header__navi_01.active {
+    transform: translateX(0);
+  }
+
+  /* ナビ内 ロゴ的なテキスト */
+  .nav-logo {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: rgba(184,151,90,0.6);
+    margin-bottom: 48px;
+    text-align: center;
+  }
+
+  /* ナビリスト */
+  .header__navi_01 ul {
+    list-style: none;
+    text-align: left;
+  }
+  .header__navi_01 li {
+    border-bottom: 1px solid rgba(184,151,90,0.12);
+    padding: 0;
+  }
+  .header__navi_01 li:first-child {
+    border-top: 1px solid rgba(184,151,90,0.12);
+  }
+
+  /* ── ▼ リンク先はここに入れる ──────────────────────
+     href="..." の部分を各セクションの id に合わせて変更。
+     例: href="#venue"  href="#profile"  href="#countdown"
+     ──────────────────────────────────────────────── */
+  .header__navi_01 li a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 0;
+    color: var(--ivory);
+    text-decoration: none;
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    transition: color 0.3s, padding-left 0.3s;
+  }
+  .header__navi_01 li a:hover {
+    color: var(--gold-light);
+    padding-left: 6px;
+  }
+  .header__navi_01 li a::after {
+    content: '→';
+    font-size: 12px;
+    color: var(--gold);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .header__navi_01 li a:hover::after {
+    opacity: 1;
+  }
+
+  /* ナビ下部の装飾テキスト */
+  .nav-footer {
+    margin-top: 48px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: rgba(184,151,90,0.4);
+    text-align: center;
+    letter-spacing: 2px;
+  }
+
+  /* ── オーバーレイ（背景暗幕） ── */
+  .menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(46,37,32,0.5);
+    backdrop-filter: blur(2px);
+    z-index: 9997;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+  .menu-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
   /* ══════════ HERO / INVITATION ══════════ */
   .hero {
     min-height: 100vh;
@@ -49,7 +295,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 60px 20px;
+    padding: 60px 40px 60px 40px;
     position: relative;
     background: linear-gradient(160deg, #faf7f2 0%, #f3ede3 60%, #ede4d8 100%);
   }
@@ -117,7 +363,6 @@
     opacity: 0;
     animation: fadeUp 1.2s ease forwards 0.6s;
   }
-
   .invitation-photo::before {
     content: '';
     position: absolute;
@@ -127,7 +372,6 @@
     pointer-events: none;
     z-index: 2;
   }
-
   .invitation-photo img {
     width: 100%;
     height: auto;
@@ -137,21 +381,6 @@
       0 2px 6px rgba(0,0,0,0.06),
       0 12px 40px rgba(0,0,0,0.12),
       0 30px 80px rgba(0,0,0,0.08);
-  }
-
-  /* Gold ribbon tab on photo */
-  .photo-ribbon {
-    position: absolute;
-    top: -1px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--gold);
-    color: #fff;
-    font-family: 'Cinzel', serif;
-    font-size: 9px;
-    letter-spacing: 3px;
-    padding: 5px 20px;
-    z-index: 3;
   }
 
   .divider {
@@ -175,6 +404,27 @@
     color: var(--gold);
   }
 
+  /* ── Scroll indicator ── */
+  .scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    opacity: 0;
+    animation: fadeIn 1s ease forwards 2s;
+    cursor: default;
+  }
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    animation: scrollAnim 2s ease-in-out infinite;
+  }
+
   /* ══════════ LOCATION LINKS ══════════ */
   .links-section {
     padding: 20px 20px 80px;
@@ -195,7 +445,6 @@
     max-width: 560px;
     width: 100%;
   }
-
   .links-card-title {
     font-family: 'Cinzel', serif;
     font-size: 12px;
@@ -204,7 +453,6 @@
     text-align: center;
     margin-bottom: 24px;
   }
-
   .link-item {
     display: flex;
     align-items: center;
@@ -213,7 +461,6 @@
     border-bottom: 1px solid rgba(184,151,90,0.15);
   }
   .link-item:last-child { border-bottom: none; }
-
   .link-icon {
     width: 36px;
     height: 36px;
@@ -225,7 +472,6 @@
     font-size: 16px;
     flex-shrink: 0;
   }
-
   .link-info { flex: 1; }
   .link-label {
     font-family: 'Noto Serif JP', serif;
@@ -241,13 +487,11 @@
     color: var(--muted);
     margin-top: 2px;
   }
-
   .link-arrow {
     color: var(--gold);
     font-size: 18px;
     transition: transform 0.3s ease;
   }
-
   .link-item a {
     display: flex;
     align-items: center;
@@ -268,7 +512,6 @@
     background: linear-gradient(180deg, #e4dbd0 0%, #ede8df 100%);
     position: relative;
   }
-
   .section-label {
     font-family: 'Cinzel', serif;
     font-size: 11px;
@@ -288,7 +531,6 @@
     height: 1px;
     background: var(--gold);
   }
-
   .person-card {
     max-width: 440px;
     width: 100%;
@@ -296,12 +538,10 @@
     flex-direction: column;
     align-items: center;
   }
-
   .person-photo-wrap {
     position: relative;
     margin-bottom: 32px;
   }
-
   .person-photo-wrap::before {
     content: '';
     position: absolute;
@@ -316,7 +556,6 @@
     border: 1px dashed rgba(184,151,90,0.15);
     border-radius: 50%;
   }
-
   .person-photo {
     width: 200px;
     height: 200px;
@@ -326,7 +565,6 @@
     box-shadow: 0 8px 30px rgba(0,0,0,0.12);
     border: 4px solid var(--ivory);
   }
-
   .person-name-ja {
     font-family: 'Noto Serif JP', serif;
     font-weight: 300;
@@ -336,7 +574,6 @@
     text-align: center;
     margin-bottom: 8px;
   }
-
   .person-name-en {
     font-family: 'Cormorant Garamond', serif;
     font-style: italic;
@@ -346,7 +583,6 @@
     text-align: center;
     margin-bottom: 24px;
   }
-
   .profile-tag {
     display: inline-flex;
     align-items: center;
@@ -373,7 +609,6 @@
     position: relative;
     overflow: hidden;
   }
-
   .countdown-section::before {
     content: '';
     position: absolute;
@@ -382,7 +617,6 @@
       radial-gradient(ellipse 60% 60% at 20% 50%, rgba(184,151,90,0.08) 0%, transparent 70%),
       radial-gradient(ellipse 40% 40% at 80% 30%, rgba(201,168,154,0.06) 0%, transparent 70%);
   }
-
   .countdown-eyebrow {
     font-family: 'Cinzel', serif;
     font-size: 11px;
@@ -392,7 +626,6 @@
     margin-bottom: 16px;
     position: relative;
   }
-
   .countdown-date {
     font-family: 'Cormorant Garamond', serif;
     font-size: clamp(32px, 6vw, 52px);
@@ -407,7 +640,6 @@
     font-style: normal;
     color: var(--gold-light);
   }
-
   .countdown-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -416,14 +648,12 @@
     width: 100%;
     position: relative;
   }
-
   .countdown-item {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 8px;
   }
-
   .countdown-box {
     width: 100%;
     aspect-ratio: 1;
@@ -437,7 +667,6 @@
     position: relative;
     overflow: hidden;
   }
-
   .countdown-box::before {
     content: '';
     position: absolute;
@@ -445,7 +674,6 @@
     height: 50%;
     background: rgba(255,255,255,0.02);
   }
-
   .countdown-num {
     font-family: 'Cormorant Garamond', serif;
     font-size: clamp(28px, 5vw, 44px);
@@ -453,9 +681,7 @@
     color: #faf7f2;
     line-height: 1;
     position: relative;
-    transition: transform 0.3s ease;
   }
-
   .countdown-ato {
     font-family: 'Noto Serif JP', serif;
     font-weight: 200;
@@ -466,7 +692,6 @@
     margin-bottom: 24px;
     position: relative;
   }
-
   .countdown-label {
     font-family: 'Noto Serif JP', serif;
     font-weight: 200;
@@ -474,7 +699,6 @@
     letter-spacing: 2px;
     color: rgba(184,151,90,0.7);
   }
-
   .countdown-ended {
     font-family: 'Cormorant Garamond', serif;
     font-size: 28px;
@@ -484,34 +708,7 @@
     letter-spacing: 2px;
   }
 
-  /* ── Scroll indicator ── */
-  .scroll-hint {
-    position: absolute;
-    bottom: 40px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    opacity: 0;
-    animation: fadeIn 1s ease forwards 2s;
-    cursor: default;
-  }
-  .scroll-hint span {
-    font-family: 'Cinzel', serif;
-    font-size: 9px;
-    letter-spacing: 3px;
-    color: var(--gold);
-  }
-  .scroll-line {
-    width: 1px;
-    height: 40px;
-    background: linear-gradient(to bottom, var(--gold), transparent);
-    animation: scrollAnim 2s ease-in-out infinite;
-  }
-
-  /* ══════════ ANIMATIONS ══════════ */
+  /* ── Animations ── */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(24px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -524,8 +721,6 @@
     0%, 100% { transform: scaleY(0.5); transform-origin: top; opacity: 0.5; }
     50%       { transform: scaleY(1);   transform-origin: top; opacity: 1; }
   }
-
-  /* Scroll-triggered fade */
   .scroll-reveal {
     opacity: 0;
     transform: translateY(30px);
@@ -536,17 +731,97 @@
     transform: translateY(0);
   }
 
+  /* ── 花火キャンバス ── */
+  #fireworks-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;   /* クリックを下の要素に透過 */
+    z-index: 500;           /* コンテンツの上、ナビメニューの下 */
+  }
+
   @media (max-width: 520px) {
     .hero-frame { inset: 16px; }
     .links-card { padding: 24px 20px; }
     .countdown-grid { gap: 10px; }
+    .site-header { padding: 0 16px 0 20px; }
   }
 </style>
 </head>
 <body>
 
+<!-- 花火キャンバス（全画面・クリック透過） -->
+<div id="fireworks-canvas"></div>
+
+<!-- ══ サイトヘッダー ══ -->
+<header class="site-header" id="siteHeader">
+  <a class="header-logo" href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;" aria-label="T&Y Wedding トップへ">
+    <span class="header-logo-ty">T&amp;Y</span>
+    <span class="header-logo-wedding">Wedding</span>
+  </a>
+  <div class="header-rule"></div>
+  <!-- ハンバーガーボタン（三本線 → ✕） -->
+  <button class="sp-menu-btn_01" id="menuBtn" aria-label="メニューを開く">
+    <span class="line"></span>
+    <span class="line"></span>
+    <span class="line"></span>
+  </button>
+</header>
+
+<!-- ══════════════════════════════════════════
+     ハンバーガーメニュー
+     ▼ メニュー項目のリンク先 (href) を以下に設定する
+       #hero        → トップ（招待状写真）
+       #venue       → 会場・アクセス
+       #profile     → プロフィール
+       #countdown   → カウントダウン
+     ▼ 追加・削除は <li>...</li> ごと行う
+════════════════════════════════════════════ -->
+
+<!-- 背景暗幕 -->
+<div class="menu-overlay" id="menuOverlay"></div>
+
+<!-- スライドインナビ -->
+<nav class="header__navi_01" id="sideNav">
+  <!-- T&Y ウォーターマーク背景 -->
+  <div class="nav-watermark" aria-hidden="true">
+    <span class="nav-watermark-ty">T&amp;Y</span>
+    <span class="nav-watermark-wedding">Wedding</span>
+  </div>
+  <p class="nav-logo">WEDDING INVITATION</p>
+  <ul>
+
+    <!-- ▼ ここにメニュー項目を追加・変更する ▼ -->
+
+    <li><a href="#hero">Top</a></li>
+    <!-- ↑ トップ（招待状写真セクション）へのリンク -->
+
+    <!--li><a href="#venue">Venue</a></li-->
+    <!-- ↑ 会場・アクセスセクションへのリンク -->
+
+    <!--li><a href="#profile-takuto">Groom</a></li-->
+    <!-- ↑ 新郎プロフィールセクションへのリンク -->
+
+    <!--li><a href="#profile-yuka">Bride</a></li-->
+    <!-- ↑ 新婦プロフィールセクションへのリンク -->
+
+    <!--li><a href="#countdown">Countdown</a></li-->
+    <!-- ↑ カウントダウンセクションへのリンク -->
+
+    <li><a href="quiz.html">Quiz</a></li>
+    <!-- ↑ 別ページ quiz.html へのリンク（同じフォルダに quiz.html を置く） -->
+
+    <!-- ▲ ここまで ▲ -->
+
+  </ul>
+  <p class="nav-footer">May 17 · 2026</p>
+</nav>
+
+
 <!-- ══ HERO ══ -->
-<section class="hero">
+<!-- ▼ id="hero" → ナビの href="#hero" と対応 -->
+<section class="hero" id="hero">
   <div class="hero-frame">
     <div class="corner-br"></div>
     <div class="corner-bl"></div>
@@ -555,7 +830,6 @@
   <p class="eyebrow">Wedding Invitation</p>
 
   <div class="invitation-photo">
-    <!-- <div class="photo-ribbon">INVITATION</div> -->
     <img src="invitation.jpg" alt="Wedding Invitation">
   </div>
 
@@ -570,8 +844,10 @@
   </div>
 </section>
 
+
 <!-- ══ LINKS ══ -->
-<section class="links-section">
+<!-- ▼ id="venue" → ナビの href="#venue" と対応 -->
+<section class="links-section" id="venue">
   <div class="links-card scroll-reveal">
     <p class="links-card-title">VENUE &amp; ACCESS</p>
 
@@ -599,49 +875,51 @@
   </div>
 </section>
 
-<!-- ══ PERSON ══ -->
-<section class="person-section">
+
+<!-- ══ PERSON : 新郎 ══ -->
+<!-- ▼ id="profile-takuto" → ナビの href="#profile-takuto" と対応 -->
+<section class="person-section" id="profile-takuto">
   <p class="section-label scroll-reveal">PROFILE</p>
 
   <div class="person-card scroll-reveal">
     <div class="person-photo-wrap">
-      <img class="person-photo" src="parson1.jpg" alt="金湖拓土">
+      <img class="person-photo" src="parson1.jpg" alt="takuto">
     </div>
-
     <p class="person-name-ja">金 湖　拓 土</p>
     <p class="person-name-en">Kaneko Takuto</p>
-
     <div class="profile-tag">
       <span>🐈</span> 猫好き
     </div>
   </div>
 </section>
 
-<section class="person-section">
+
+<!-- ══ PERSON : 新婦 ══ -->
+<!-- ▼ id="profile-yuka" → ナビの href="#profile-yuka" と対応 -->
+<section class="person-section" id="profile-yuka">
   <p class="section-label scroll-reveal">PROFILE</p>
 
   <div class="person-card scroll-reveal">
     <div class="person-photo-wrap">
-      <img class="person-photo" src="parson2.jpg" alt="鳳優佳">
+      <img class="person-photo" src="parson2.jpg" alt="優佳">
     </div>
-
     <p class="person-name-ja">鳳　優 佳</p>
     <p class="person-name-en">Otori Yuka</p>
-
     <div class="profile-tag">
       <span>🐈</span> 猫好き
     </div>
   </div>
 </section>
 
+
 <!-- ══ COUNTDOWN ══ -->
-<section class="countdown-section">
+<!-- ▼ id="countdown" → ナビの href="#countdown" と対応 -->
+<section class="countdown-section" id="countdown">
   <p class="countdown-eyebrow scroll-reveal">UNTIL THE CEREMONY</p>
   <p class="countdown-date scroll-reveal"><em>May 17</em> · 2026 · <em>15:30</em></p>
-
   <p class="countdown-ato scroll-reveal">あと</p>
 
-  <div class="countdown-grid scroll-reveal" id="countdown">
+  <div class="countdown-grid scroll-reveal" id="countdownGrid">
     <div class="countdown-item">
       <div class="countdown-box"><span class="countdown-num" id="days">--</span></div>
       <span class="countdown-label">日</span>
@@ -661,8 +939,32 @@
   </div>
 </section>
 
-<script>
-  // ── Scroll reveal ──────────────────────────────────────
+
+<!-- jQuery読み込み -->
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+
+<script type="module">
+  // ══════════════════════════════════════
+  // ハンバーガーメニュー（vanilla JS）
+  // ══════════════════════════════════════
+
+  const menuBtn     = document.getElementById('menuBtn');
+  const sideNav     = document.getElementById('sideNav');
+  const menuOverlay = document.getElementById('menuOverlay');
+
+  function openMenu()  { menuBtn.classList.add('active'); sideNav.classList.add('active'); menuOverlay.classList.add('active'); }
+  function closeMenu() { menuBtn.classList.remove('active'); sideNav.classList.remove('active'); menuOverlay.classList.remove('active'); }
+
+  menuBtn.addEventListener('click', () => {
+    menuBtn.classList.contains('active') ? closeMenu() : openMenu();
+  });
+  menuOverlay.addEventListener('click', closeMenu);
+  sideNav.querySelectorAll('a[href]').forEach(a => a.addEventListener('click', closeMenu));
+
+
+  // ══════════════════════════════════════
+  // スクロール表示アニメーション
+  // ══════════════════════════════════════
   const reveals = document.querySelectorAll('.scroll-reveal');
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => {
@@ -671,27 +973,117 @@
   }, { threshold: 0.15 });
   reveals.forEach(el => observer.observe(el));
 
-  // ── Countdown ─────────────────────────────────────────
-  // ★ ここの日付・時刻を実際の挙式日時に変更 (例: '2026-10-10T15:00:00+09:00')
-  const target = new Date('2026-05-17T15:30:00+09:00');
+
+  // ══════════════════════════════════════
+  // 花火（fireworks-js）- カウント0になってから起動
+  // ══════════════════════════════════════
+  import { Fireworks } from 'https://cdn.skypack.dev/fireworks-js';
+
+  const fwContainer = document.getElementById('fireworks-canvas');
+
+  // 花火インスタンス（まだ start しない）
+  const fw = new Fireworks(fwContainer, {
+    autoresize: true,
+    opacity: 0.5,
+    acceleration: 1.05,
+    friction: 0.97,
+    gravity: 1.5,
+    particles: 100,
+    traceLength: 3,
+    traceSpeed: 10,
+    explosion: 5,
+    intensity: 0,            // auto off
+    flickering: 50,
+    lineStyle: 'round',
+    hue: { min: 30, max: 360 },
+    delay: { min: 30, max: 90 },
+    rocketsPoint: { min: 10, max: 90 },
+    lineWidth: {
+      explosion: { min: 1, max: 3 },
+      trace:     { min: 0.5, max: 1 }
+    },
+    brightness: { min: 50, max: 80 },
+    decay: { min: 0.015, max: 0.03 },
+    mouse: { click: false, move: false, max: 1 }
+  });
+
+  let fireworksStarted = false;
+
+  // カウント0後にクリック/タッチで花火を打ち上げる
+  let clickBusy = false;
+
+  function launchAt(x, y) {
+    if (!fireworksStarted) return;
+    if (clickBusy) return;
+    clickBusy = true;
+
+    const px = (x / window.innerWidth) * 100;
+
+    // 位置を指定して1発だけ発射、すぐ元の位置設定に戻す
+    fw.updateOptions({ rocketsPoint: { min: px, max: px } });
+    fw.launch(1);
+    fw.updateOptions({ rocketsPoint: { min: 10, max: 90 } });
+
+    // 連打防止（500ms）
+    setTimeout(() => { clickBusy = false; }, 500);
+  }
+
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#menuBtn, #sideNav, #menuOverlay, a, button')) return;
+    launchAt(e.clientX, e.clientY);
+  });
+
+  document.addEventListener('touchend', (e) => {
+    if (e.target.closest('#menuBtn, #sideNav, #menuOverlay, a, button')) return;
+    const t = e.changedTouches[0];
+    launchAt(t.clientX, t.clientY);
+  }, { passive: true });
+
+
+  // ══════════════════════════════════════
+  // カウントダウン
+  // ★ 挙式日時を変更する場合はここを編集
+  // ══════════════════════════════════════
+  const target = new Date('2026-05-16T15:30:00+09:00');
 
   function pad(n) { return String(n).padStart(2, '0'); }
 
-  function tick() {
-    const now  = new Date();
-    const diff = target - now;
+  let countdownTimer = null;
 
+  function tick() {
+    const diff = target - new Date();
     if (diff <= 0) {
-      document.getElementById('countdown').innerHTML =
-        '<p class="countdown-ended" style="grid-column:1/-1">Happy Wedding Day 🎊</p>';
+      // カウントを止める
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+      document.getElementById('days').textContent    = '00';
+      document.getElementById('hours').textContent   = '00';
+      document.getElementById('minutes').textContent = '00';
+      document.getElementById('seconds').textContent = '00';
+
+      // 「あと」を非表示
+      const atoEl = document.querySelector('.countdown-ato');
+      if (atoEl) atoEl.style.display = 'none';
+
+      // メッセージ表示
+      setTimeout(() => {
+        document.getElementById('countdownGrid').innerHTML =
+          '<p class="countdown-ended" style="grid-column:1/-1">Happy Wedding Day 🎊</p>';
+      }, 800);
+
+      // ★ ここで花火をスタート
+      if (!fireworksStarted) {
+        fireworksStarted = true;
+        fw.start();
+      }
       return;
     }
-
     const d = Math.floor(diff / 86400000);
     const h = Math.floor((diff % 86400000) / 3600000);
     const m = Math.floor((diff % 3600000)  / 60000);
     const s = Math.floor((diff % 60000)    / 1000);
-
     document.getElementById('days').textContent    = pad(d);
     document.getElementById('hours').textContent   = pad(h);
     document.getElementById('minutes').textContent = pad(m);
@@ -699,7 +1091,7 @@
   }
 
   tick();
-  setInterval(tick, 1000);
+  countdownTimer = setInterval(tick, 1000);
 </script>
 </body>
 </html>

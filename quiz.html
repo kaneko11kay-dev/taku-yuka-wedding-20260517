@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>BGM 自動再生サンプル</title>
+  <style>
+    /* 見た目に何も出さない（必要なら削除） */
+    body { margin:0; height:100vh; }
+  </style>
+</head>
+<body>
+  <!-- BGM -->
+  <audio id="bgm" src="quizStart.mp3" preload="auto" playsinline muted></audio>
+
+  <script>
+    const audio = document.getElementById('bgm');
+
+    // ミュートで自動再生を試みる（ブラウザによっては成功する）
+    audio.play().catch(()=>{ /* 自動再生がブロックされる */ });
+
+    // 最初のユーザー操作（どこでも良い）でミュート解除してフェードイン再生
+    function onFirstUserGesture() {
+      // remove listeners
+      document.removeEventListener('click', onFirstUserGesture);
+      document.removeEventListener('touchstart', onFirstUserGesture);
+      document.removeEventListener('keydown', onFirstUserGesture);
+
+      // ミュート解除して再生（既に再生中なら音量だけ調整）
+      audio.muted = false;
+      audio.volume = 0.0;
+      audio.play().catch(()=>{ /* 再生失敗時は無視 */ });
+
+      // 簡単なフェードイン（0 → 0.8 に 1.5秒で）
+      const target = 0.8;
+      const duration = 1500;
+      const step = 50;
+      const increment = (target - audio.volume) / (duration / step);
+      const fade = setInterval(() => {
+        let v = Math.min(target, audio.volume + increment);
+        audio.volume = v;
+        if (v >= target) clearInterval(fade);
+      }, step);
+    }
+
+    // どこでも良いので最初の操作を拾う
+    document.addEventListener('click', onFirstUserGesture, { once: true });
+    document.addEventListener('touchstart', onFirstUserGesture, { once: true });
+    document.addEventListener('keydown', onFirstUserGesture, { once: true });
+
+    // タブが非表示→表示に戻ったときに再生を試みる（ユーザーが既に許可していれば再生される）
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        audio.play().catch(()=>{});
+      }
+    });
+  </script>
+</body>
+</html>
+
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💍 ふたりのことクイズ</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Cinzel:wght@400;500&family=Noto+Serif+JP:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  /* ══════════════════════════════════════
+     ハンバーガーメニュー
+  ══════════════════════════════════════ */
+
+  .sp-menu-btn_01 {
+    background: #2e2520;
+    border: 1px solid rgba(184,151,90,0.4);
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    width: 54px;
+    height: 54px;
+    cursor: pointer;
+    z-index: 9999;
+    border-radius: 50%;
+    transition: background 0.3s;
+  }
+  .sp-menu-btn_01:hover {
+    background: rgba(46,37,32,0.85);
+  }
+  .sp-menu-btn_01 .line {
+    display: block;
+    position: absolute;
+    width: 24px;
+    height: 1px;
+    right: 15px;
+    background: #d4b87a;
+    transition: 0.3s ease-in-out;
+  }
+  .sp-menu-btn_01 span:nth-child(1) { top: 18px; }
+  .sp-menu-btn_01 span:nth-child(2) { top: 26px; }
+  .sp-menu-btn_01 span:nth-child(3) { top: 34px; }
+
+  .sp-menu-btn_01.active span:nth-child(1) {
+    top: 26px;
+    transform: rotate(-45deg);
+  }
+  .sp-menu-btn_01.active span:nth-child(2) {
+    opacity: 0;
+  }
+  .sp-menu-btn_01.active span:nth-child(3) {
+    top: 26px;
+    transform: rotate(45deg);
+  }
+
+  .header__navi_01 {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(320px, 80vw);
+    height: 100vh;
+    background: #2e2520;
+    border-left: 1px solid rgba(184,151,90,0.25);
+    transform: translateX(100%);
+    transition: transform 0.5s cubic-bezier(0.77,0,0.18,1);
+    z-index: 9998;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 40px;
+  }
+  .header__navi_01.active {
+    transform: translateX(0);
+  }
+
+  .nav-logo {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: rgba(184,151,90,0.6);
+    margin-bottom: 48px;
+    text-align: center;
+  }
+
+  .header__navi_01 ul {
+    list-style: none;
+    text-align: left;
+  }
+  .header__navi_01 li {
+    border-bottom: 1px solid rgba(184,151,90,0.12);
+    padding: 0;
+  }
+  .header__navi_01 li:first-child {
+    border-top: 1px solid rgba(184,151,90,0.12);
+  }
+  .header__navi_01 li a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 0;
+    color: #faf7f2;
+    text-decoration: none;
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    transition: color 0.3s, padding-left 0.3s;
+  }
+  .header__navi_01 li a:hover {
+    color: #d4b87a;
+    padding-left: 6px;
+  }
+  .header__navi_01 li a::after {
+    content: '→';
+    font-size: 12px;
+    color: #b8975a;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .header__navi_01 li a:hover::after {
+    opacity: 1;
+  }
+
+  .nav-footer {
+    margin-top: 48px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: rgba(184,151,90,0.4);
+    text-align: center;
+    letter-spacing: 2px;
+  }
+
+  .menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(46,37,32,0.5);
+    backdrop-filter: blur(2px);
+    z-index: 9997;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+  .menu-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  @media (max-width: 520px) {
+    .sp-menu-btn_01 { right: 14px; top: 14px; }
+  }
+
+  :root {
+    --cream: #fdf8f2;
+    --blush: #f0d9cd;
+    --rose: #c9877a;
+    --deep-rose: #9e5a50;
+    --sage: #b5c4b1;
+    --deep-sage: #7a9474;
+    --gold: #c9a96e;
+    --text: #3a2e2a;
+    --text-light: #7a6560;
+  }
+
+  body {
+    font-family: 'Noto Serif JP', serif;
+    background-color: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-x: hidden;
+  }
+
+  /* Decorative background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 10% 20%, rgba(181,196,177,0.18) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 80%, rgba(240,217,205,0.3) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(201,169,110,0.05) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .petal {
+    position: fixed;
+    font-size: 1.2rem;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 100;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 0.7; }
+    100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 560px;
+  }
+
+  /* ── SCREEN BASE ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ── CARD ── */
+  .card {
+    background: rgba(253,248,242,0.92);
+    border: 1px solid rgba(201,169,110,0.3);
+    border-radius: 2px;
+    padding: 48px 40px;
+    box-shadow:
+      0 2px 40px rgba(58,46,42,0.07),
+      inset 0 0 60px rgba(240,217,205,0.15);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 12px; left: 12px; right: 12px; bottom: 12px;
+    border: 1px solid rgba(201,169,110,0.15);
+    border-radius: 1px;
+    pointer-events: none;
+  }
+
+  /* ── ORNAMENTS ── */
+  .ornament {
+    text-align: center;
+    color: var(--gold);
+    font-size: 1rem;
+    letter-spacing: 0.3em;
+    margin-bottom: 8px;
+    opacity: 0.7;
+  }
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    opacity: 0.5;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+  .divider span { color: var(--gold); font-size: 0.6rem; }
+
+  /* ── TITLE SCREEN ── */
+  .title-screen h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.4rem;
+    font-weight: 300;
+    font-style: italic;
+    text-align: center;
+    color: var(--deep-rose);
+    line-height: 1.3;
+    margin-bottom: 6px;
+  }
+  .title-screen .subtitle {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text-light);
+    letter-spacing: 0.15em;
+    margin-bottom: 4px;
+  }
+  .title-screen .intro {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    line-height: 1.9;
+    margin-bottom: 28px;
+  }
+
+  /* ── BUTTON ── */
+  .btn {
+    display: block;
+    width: 100%;
+    padding: 14px 24px;
+    border: 1px solid var(--rose);
+    background: transparent;
+    color: var(--deep-rose);
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.88rem;
+    letter-spacing: 0.2em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 1px;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--blush);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+    z-index: -1;
+  }
+  .btn:hover { color: var(--deep-rose); border-color: var(--deep-rose); }
+  .btn:hover::after { transform: scaleX(1); }
+  .btn.btn-sage {
+    border-color: var(--deep-sage);
+    color: var(--deep-sage);
+  }
+  .btn.btn-sage::after { background: rgba(181,196,177,0.25); }
+
+  /* ── QUIZ SCREEN ── */
+  .progress-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .progress-bar {
+    flex: 1;
+    height: 2px;
+    background: rgba(201,169,110,0.2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--gold), var(--rose));
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+  .progress-label {
+    font-size: 0.72rem;
+    color: var(--text-light);
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+  }
+
+  .question-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.8rem;
+    color: var(--gold);
+    letter-spacing: 0.25em;
+    margin-bottom: 10px;
+  }
+  .question-text {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--text);
+    margin-bottom: 24px;
+    font-weight: 400;
+  }
+
+  .choices { display: flex; flex-direction: column; gap: 10px; }
+  .choice-btn {
+    display: block;
+    width: 100%;
+    padding: 13px 18px;
+    border: 1px solid rgba(201,169,110,0.35);
+    background: rgba(253,248,242,0.6);
+    color: var(--text);
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 1px;
+    transition: all 0.25s ease;
+  }
+  .choice-btn:hover:not(:disabled) {
+    border-color: var(--rose);
+    background: rgba(240,217,205,0.4);
+    transform: translateX(4px);
+  }
+  .choice-btn.correct {
+    border-color: var(--deep-sage);
+    background: rgba(181,196,177,0.25);
+    color: var(--deep-sage);
+  }
+  .choice-btn.wrong {
+    border-color: var(--rose);
+    background: rgba(201,135,122,0.1);
+    color: var(--rose);
+    text-decoration: line-through;
+    opacity: 0.7;
+  }
+  .choice-btn:disabled { cursor: default; }
+
+  /* Feedback */
+  .feedback {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-left: 2px solid var(--gold);
+    background: rgba(201,169,110,0.07);
+    font-size: 0.85rem;
+    line-height: 1.8;
+    color: var(--text-light);
+    display: none;
+    animation: fadeUp 0.4s ease forwards;
+  }
+  .feedback.show { display: block; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .feedback .verdict {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .next-btn-wrap { margin-top: 20px; }
+
+  /* ── HINT BUTTON ── */
+  .hint-btn-wrap { margin-bottom: 16px; text-align: right; }
+  .hint-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border: 1px solid rgba(201,169,110,0.5);
+    background: transparent;
+    color: var(--gold);
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: all 0.25s ease;
+  }
+  .hint-btn:hover {
+    background: rgba(201,169,110,0.12);
+    border-color: var(--gold);
+  }
+  .hint-btn.used {
+    opacity: 0.4;
+    cursor: default;
+    pointer-events: none;
+  }
+  .hint-popup {
+    display: none;
+    background: rgba(201,169,110,0.08);
+    border: 1px dashed rgba(201,169,110,0.45);
+    border-radius: 2px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-size: 0.83rem;
+    color: var(--text-light);
+    line-height: 1.75;
+    animation: fadeUp 0.35s ease forwards;
+  }
+  .hint-popup.show { display: block; }
+  .hint-popup::before {
+    content: '💡 ';
+  }
+
+  /* ── RESULT SCREEN ── */
+  .result-screen { text-align: center; }
+  .result-screen h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--deep-rose);
+    margin-bottom: 8px;
+  }
+  .score-display {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 4rem;
+    font-weight: 300;
+    color: var(--gold);
+    line-height: 1;
+    margin: 16px 0 4px;
+  }
+  .score-display span { font-size: 1.6rem; color: var(--text-light); }
+  .score-msg {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    line-height: 1.8;
+    margin: 12px 0 28px;
+  }
+  .result-btns { display: flex; flex-direction: column; gap: 10px; }
+
+  /* ── EDIT SCREEN ── */
+  .edit-screen h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--deep-rose);
+    text-align: center;
+    margin-bottom: 6px;
+  }
+  .edit-note {
+    font-size: 0.78rem;
+    color: var(--text-light);
+    text-align: center;
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+  .q-editor {
+    border: 1px solid rgba(201,169,110,0.3);
+    padding: 16px;
+    margin-bottom: 12px;
+    border-radius: 1px;
+    background: rgba(253,248,242,0.5);
+  }
+  .q-editor label {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    margin-bottom: 4px;
+  }
+  .q-editor input, .q-editor textarea {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid rgba(201,169,110,0.3);
+    background: transparent;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 0.85rem;
+    color: var(--text);
+    padding: 4px 0 6px;
+    outline: none;
+    resize: none;
+    line-height: 1.6;
+  }
+  .q-editor input:focus, .q-editor textarea:focus {
+    border-bottom-color: var(--rose);
+  }
+  .choices-edit { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .choice-row { display: flex; align-items: center; gap: 8px; }
+  .choice-row input { flex: 1; }
+  .choice-row .correct-radio {
+    width: 14px; height: 14px; accent-color: var(--deep-sage); cursor: pointer;
+    flex-shrink: 0;
+  }
+  .choice-row label { font-size: 0.7rem; color: var(--text-light); white-space: nowrap; }
+  .hint-row { margin-top: 8px; }
+  .edit-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .edit-actions .btn { font-size: 0.82rem; padding: 11px 16px; }
+
+  @media (max-width: 480px) {
+    .card { padding: 36px 24px; }
+    .title-screen h1 { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 背景暗幕 -->
+<div class="menu-overlay" id="menuOverlay"></div>
+
+<!-- スライドインナビ -->
+<nav class="header__navi_01" id="sideNav">
+  <p class="nav-logo">WEDDING INVITATION</p>
+  <ul>
+    <li><a href="index2.html">Top</a></li>
+    <!--li><a href="index2.html#venue">Venue</a></li>
+    <li><a href="index2.html#profile-takuto">Groom</a></li>
+    <li><a href="index2.html#profile-yuka">Bride</a></li>
+    <li><a href="index2.html#countdown">Countdown</a></li-->
+    <li><a href="quiz.html">Quiz</a></li>
+  </ul>
+  <p class="nav-footer">May 17 · 2026</p>
+</nav>
+
+<!-- ハンバーガーボタン -->
+<button class="sp-menu-btn_01" id="menuBtn" aria-label="メニューを開く">
+  <span class="line"></span>
+  <span class="line"></span>
+  <span class="line"></span>
+</button>
+
+<div class="container">
+
+  <!-- ===== TITLE ===== -->
+  <div class="screen active" id="screen-title">
+    <div class="card title-screen">
+      <div class="ornament">✦  ✦</div>
+      <h1>ふたりのこと<br>どれだけ知ってる？</h1>
+      <div class="divider"><span>❧</span></div>
+      <p class="subtitle">Wedding Quiz</p>
+      <p class="intro">
+        写真撮影の合間に、<br>
+        おふたりのことをもっと知ってみませんか。<br>
+        全 <span id="total-q-label">?</span> 問のクイズに挑戦してみてください。
+      </p>
+      <button class="btn" onclick="startQuiz()">クイズをはじめる</button>
+      <div class="divider"><span>✦</span></div>
+      <!-- button class="btn btn-sage" onclick="showEdit()">問題を編集する</button -->
+    </div>
+  </div>
+
+  <!-- ===== QUIZ ===== -->
+  <div class="screen" id="screen-quiz">
+    <div class="card">
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="progress-label" id="progress-label"></div>
+      </div>
+      <div class="question-num" id="question-num"></div>
+      <div class="question-text" id="question-text"></div>
+      <div class="hint-btn-wrap">
+        <button class="hint-btn" id="hint-btn" onclick="showHint()">💡 ヒントを見る</button>
+      </div>
+      <div class="hint-popup" id="hint-popup"></div>
+      <div class="choices" id="choices"></div>
+      <div class="feedback" id="feedback">
+        <div class="verdict" id="feedback-verdict"></div>
+        <div id="feedback-hint"></div>
+      </div>
+      <div class="next-btn-wrap">
+        <button class="btn" id="next-btn" style="display:none" onclick="nextQuestion()">
+          次の問題へ →
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RESULT ===== -->
+  <div class="screen" id="screen-result">
+    <div class="card result-screen">
+      <div class="ornament">✦</div>
+      <h2 id="result-title">お疲れさまでした</h2>
+      <div class="divider"><span>❧</span></div>
+      <div class="score-display" id="score-display"></div>
+      <p id="score-msg" class="score-msg"></p>
+      <div class="result-btns">
+        <button class="btn" onclick="startQuiz()">もう一度チャレンジ</button>
+        <button class="btn btn-sage" onclick="showTitle()">トップに戻る</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== EDIT ===== -->
+  <div class="screen" id="screen-edit">
+    <div class="card edit-screen">
+      <h2>問題を編集する</h2>
+      <p class="edit-note">
+        おふたりのエピソードに合わせて自由に書き換えてください。<br>
+        ◉ が正解になります。
+      </p>
+      <div id="editors"></div>
+      <div class="edit-actions">
+        <button class="btn" onclick="saveEdit()" style="flex:1">保存して戻る</button>
+        <button class="btn btn-sage" onclick="showTitle()" style="flex:1">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ==============================
+// QUIZ DATA — 自由に書き換えてね！
+// ==============================
+let quizData = [
+  {
+    q: "ふたりが初めて会った場所はどこでしょう？",
+    choices: ["秋葉原", "上野", "赤羽"],
+    answer: 1,
+    hint: "パンダがいました",
+    explanation: "人気の海鮮丼屋に行きました。"
+  },
+  {
+    q: "ふたりが春になると集めて出すものは何でしょう？",
+    choices: ["花", "サクラ味のお菓子", "ヤマザキ春のパン祭りシール"],
+    answer: 2,
+    hint: "今年は2枚...",
+    explanation: "今年は2枚お皿をゲットしました！"
+  },
+  {
+    q: "ふたりの家には猫の置物がありますが、何体飾っているでしょう？",
+    choices: ["5", "15", "25"],
+    answer: 2,
+    hint: "小さいのがたくさんいます。",
+    explanation: "ガチャガチャを回していたら増えました(;^ω^)"
+  },
+  {
+    q: "たくとが初めてゆうかに贈った花は何でしょう？",
+    choices: ["バラ", "タンポポ", "デルフィニウム"],
+    answer: 2,
+    hint: "小さな青い花でした🌸",
+    explanation: "花言葉は「あなたを幸せにします」🌸 ※たまたまでした。"
+  },
+  {
+    q: "たくとが気付くゆうかの変化は何でしょう？",
+    choices: ["髪の長さ", "まつ毛パーマ", "ネイル"],
+    answer: 1,
+    hint: "それ以外は中々気付きません..",
+    explanation: "何故かすぐに気付きます。不思議です(ゆうか談)"
+  },
+  {
+    q: "ふたりの結婚指輪にはどんな意味が込められているでしょうか？",
+    choices: [
+      "お守り",
+      "絆",
+      "そして永遠に"
+    ],
+    answer: 0,
+    hint: "指輪の名前は「アミュレット」です💍",
+    explanation: "お守りという名前とデザインも気に入っています💍"
+  },
+  {
+    q: "ゆうかがたくとより得意なことは何でしょう？",
+    choices: [
+      "卓球",
+      "頭文字D THE ARCADE(ゲームセンター)",
+      "スキー"
+    ],
+    answer: 0,
+    hint: "その部活をやっていました",
+    explanation: "ゆうかは疲れていない限り全勝です。"
+  },  {
+    q: "たくとがひっそりと集めているものは？",
+    choices: [
+      "ポケモンカード",
+      "御城印",
+      "石"
+    ],
+    answer: 1,
+    hint: "旅行先で集めます",
+    explanation: "まだ5枚です。"
+  },  {
+    q: "ゆうかがひっそり習いたいと思っていることは？",
+    choices: [
+      "バレエ",
+      "キックボクシング",
+      "乗馬"
+    ],
+    answer: 1,
+    hint: "強くなりたい！",
+    explanation: "9年前から気になっているので今年こそ初めてみたい。"
+  },  {
+    q: "ふたりが海外で行こうとしているところはどこ？",
+    choices: [
+      "フランス",
+      "マダガスカル",
+      "フィンランド"
+    ],
+    answer: 2,
+    hint: "サンタ村があります。",
+    explanation: "ゆうかはサンタクロースに会いたいそうです。"
+  }
+
+];
+
+let current = 0, score = 0, answered = false;
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function showTitle() {
+  document.getElementById('total-q-label').textContent = quizData.length;
+  showScreen('screen-title');
+}
+function showEdit() { buildEditors(); showScreen('screen-edit'); }
+
+// ── QUIZ ──
+function startQuiz() {
+  current = 0; score = 0;
+  showScreen('screen-quiz');
+  renderQuestion();
+}
+function renderQuestion() {
+  const q = quizData[current];
+  answered = false;
+  const total = quizData.length;
+
+  document.getElementById('progress-fill').style.width = ((current / total) * 100) + '%';
+  document.getElementById('progress-label').textContent = `${current + 1} / ${total}`;
+  document.getElementById('question-num').textContent = `Q U E S T I O N ${String(current + 1).padStart(2,'0')}`;
+  document.getElementById('question-text').textContent = q.q;
+
+  const fb = document.getElementById('feedback');
+  fb.classList.remove('show');
+  document.getElementById('next-btn').style.display = 'none';
+
+  // ヒントをリセット
+  const hintPopup = document.getElementById('hint-popup');
+  const hintBtn = document.getElementById('hint-btn');
+  hintPopup.textContent = '';
+  hintPopup.classList.remove('show');
+  hintBtn.classList.remove('used');
+  hintBtn.style.display = q.hint ? 'inline-flex' : 'none';
+
+  const choicesEl = document.getElementById('choices');
+  choicesEl.innerHTML = '';
+  q.choices.forEach((c, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = c;
+    btn.onclick = () => selectAnswer(i);
+    choicesEl.appendChild(btn);
+  });
+}
+function showHint() {
+  if (answered) return;
+  const q = quizData[current];
+  if (!q.hint) return;
+  const hintPopup = document.getElementById('hint-popup');
+  const hintBtn = document.getElementById('hint-btn');
+  hintPopup.textContent = q.hint;
+  hintPopup.classList.add('show');
+  hintBtn.classList.add('used');
+  hintBtn.textContent = '💡 ヒントを見る';
+}
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = quizData[current];
+  const btns = document.querySelectorAll('.choice-btn');
+  btns.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.answer) b.classList.add('correct');
+    else if (i === idx) b.classList.add('wrong');
+  });
+  const correct = idx === q.answer;
+  if (correct) { score++; spawnPetals(); }
+
+  const fb = document.getElementById('feedback');
+  document.getElementById('feedback-verdict').textContent = correct ? '✨ 正解です！' : '惜しい！ 不正解です';
+  document.getElementById('feedback-hint').textContent = q.explanation || '';
+  fb.classList.add('show');
+
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.textContent = current < quizData.length - 1 ? '次の問題へ →' : '結果を見る';
+  nextBtn.style.display = 'block';
+}
+function nextQuestion() {
+  current++;
+  if (current < quizData.length) renderQuestion();
+  else showResult();
+}
+
+// ── RESULT ──
+function showResult() {
+  showScreen('screen-result');
+  const total = quizData.length;
+  const pct = score / total;
+  document.getElementById('score-display').innerHTML = `${score}<span> / ${total}</span>`;
+  let title, msg;
+  if (pct === 1) { title = "パーフェクト！"; msg = "おふたりのことを誰よりもよく知っていますね🌸\nこれからも仲良く見守ってください。"; }
+  else if (pct >= 0.7){ title = "すごい！"; msg = "おふたりのことをよく知っていますね✨\nこれからも仲良く見守ってください。"; }
+  else if (pct >= 0.4){ title = "なかなか！"; msg = "これからも仲良く見守ってください。"; }
+  else { title = "まだまだいける！"; msg = "これからも仲良く見守ってください。"; }
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('score-msg').innerHTML = msg.replace(/\n/g, "<br>");
+
+  if (pct === 1) spawnPetals(30);
+}
+
+// ── PETALS ──
+function spawnPetals(n = 12) {
+  const symbols = ['🌸','🌿','✿','❀','🌼'];
+  for (let i = 0; i < n; i++) {
+    setTimeout(() => {
+      const p = document.createElement('div');
+      p.className = 'petal';
+      p.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+      p.style.left = Math.random() * 100 + 'vw';
+      p.style.fontSize = (0.8 + Math.random() * 0.8) + 'rem';
+      p.style.animationDuration = (2 + Math.random() * 2) + 's';
+      document.body.appendChild(p);
+      p.addEventListener('animationend', () => p.remove());
+    }, i * 80);
+  }
+}
+
+// ── EDIT ──
+function buildEditors() {
+  const wrap = document.getElementById('editors');
+  wrap.innerHTML = '';
+  quizData.forEach((q, qi) => {
+    const div = document.createElement('div');
+    div.className = 'q-editor';
+    div.innerHTML = `
+      <label>問題 ${qi + 1}</label>
+      <textarea rows="2" id="eq-${qi}">${q.q}</textarea>
+      <div class="choices-edit">
+        ${q.choices.map((c,ci) => `
+          <div class="choice-row">
+            <input type="text" id="ec-${qi}-${ci}" value="${c}">
+            <input type="radio" class="correct-radio" name="correct-${qi}" id="er-${qi}-${ci}" value="${ci}" ${q.answer===ci?'checked':''}>
+            <label for="er-${qi}-${ci}">正解</label>
+          </div>
+        `).join('')}
+      </div>
+      <div class="hint-row">
+        <label style="margin-top:8px;">💡 ヒント（回答前に表示）</label>
+        <input type="text" id="eh-${qi}" value="${q.hint||''}">
+      </div>
+      <div class="hint-row">
+        <label style="margin-top:8px;">📖 解説（回答後に表示）</label>
+        <input type="text" id="ex-${qi}" value="${q.explanation||''}">
+      </div>
+    `;
+    wrap.appendChild(div);
+  });
+}
+function saveEdit() {
+  quizData.forEach((q, qi) => {
+    q.q = document.getElementById(`eq-${qi}`).value.trim();
+    q.choices.forEach((_, ci) => {
+      q.choices[ci] = document.getElementById(`ec-${qi}-${ci}`).value.trim();
+    });
+    const checked = document.querySelector(`input[name="correct-${qi}"]:checked`);
+    if (checked) q.answer = parseInt(checked.value);
+    const hintEl = document.getElementById(`eh-${qi}`);
+    q.hint = hintEl ? hintEl.value.trim() : '';
+    const expEl = document.getElementById(`ex-${qi}`);
+    q.explanation = expEl ? expEl.value.trim() : '';
+  });
+  showTitle();
+}
+
+// init
+document.getElementById('total-q-label').textContent = quizData.length;
+</script>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+<script>
+  $(function () {
+    $("#menuBtn").click(function () {
+      $(this).toggleClass("active");
+      $("#sideNav").toggleClass("active");
+      $("#menuOverlay").toggleClass("active");
+    });
+    $("#menuOverlay").click(function () {
+      $("#menuBtn").removeClass("active");
+      $("#sideNav").removeClass("active");
+      $(this).removeClass("active");
+    });
+    $("#sideNav a[href]").click(function () {
+      $("#menuBtn").removeClass("active");
+      $("#sideNav").removeClass("active");
+      $("#menuOverlay").removeClass("active");
+    });
+  });
+</script>
+</body>
+</html>
+
