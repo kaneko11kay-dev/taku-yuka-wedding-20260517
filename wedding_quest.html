@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>💒 Wedding Quest</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;background:#1a0a2e;overflow:hidden;touch-action:none}
+#wrapper{
+  position:relative;width:100%;height:100%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+#ui-bar{
+  color:#fff;font-size:13px;font-family:'Courier New',monospace;
+  text-shadow:1px 1px #000;letter-spacing:1px;
+  display:flex;gap:0;padding:5px 0 3px;
+  width:512px;justify-content:space-around;flex-shrink:0;
+  background:rgba(0,0,0,0.4);border-radius:4px 4px 0 0;
+}
+#ui-bar div{text-align:center;padding:2px 8px}
+canvas{
+  display:block;
+  image-rendering:pixelated;image-rendering:crisp-edges;
+  border:3px solid #fff;flex-shrink:0;
+  width:512px;height:448px;
+}
+/* ── Mobile controls ── */
+#ctrl{
+  display:none;position:fixed;
+  bottom:0;left:0;right:0;height:150px;z-index:50;
+  pointer-events:none;
+  background:linear-gradient(to top,rgba(0,0,0,0.35),transparent);
+}
+.gbtn{
+  position:absolute;border-radius:50%;
+  border:3px solid rgba(255,255,255,0.5);
+  background:rgba(255,255,255,0.15);
+  color:#fff;font-size:22px;font-weight:900;font-family:'Courier New',monospace;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:auto;user-select:none;-webkit-user-select:none;
+  transition:background 0.05s,transform 0.05s;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+.gbtn.act{background:rgba(255,255,255,0.38);transform:scale(0.90)}
+/* 左 */
+#bl{width:72px;height:72px;left:12px;bottom:52px;font-size:28px}
+/* 右 */
+#br{width:72px;height:72px;left:96px;bottom:52px;font-size:28px}
+/* ジャンプ */
+#bj{
+  width:96px;height:96px;right:16px;bottom:28px;font-size:16px;letter-spacing:0;
+  background:rgba(220,30,30,0.22);border-color:rgba(255,80,80,0.6);
+}
+#bj.act{background:rgba(220,30,30,0.50)}
+/* UP ボタン（ジャンプ補助） */
+#bup{
+  width:72px;height:72px;left:50px;bottom:128px;font-size:26px;
+  background:rgba(50,50,220,0.18);border-color:rgba(100,130,255,0.55);
+}
+#bup.act{background:rgba(50,50,220,0.45)}
+/* START */
+#bstart{
+  width:64px;height:32px;border-radius:16px;
+  bottom:118px;right:128px;font-size:10px;
+  background:rgba(80,80,255,0.22);border-color:rgba(120,120,255,0.55);
+}
+/* トグルボタン（PC向け） */
+#ctrl-toggle{
+  display:none;position:fixed;bottom:10px;left:50%;transform:translateX(-50%);z-index:100;
+  background:linear-gradient(135deg,rgba(80,40,180,0.92),rgba(180,40,100,0.92));
+  border:2px solid rgba(255,255,255,0.7);
+  color:#fff;font-size:13px;font-family:'Courier New',monospace;font-weight:bold;
+  padding:9px 22px;border-radius:24px;cursor:pointer;
+  user-select:none;letter-spacing:2px;
+  box-shadow:0 0 16px rgba(180,80,255,0.6),0 2px 8px rgba(0,0,0,0.5);
+  white-space:nowrap;
+  transition:opacity 0.15s,transform 0.15s;
+}
+#ctrl-toggle:hover{opacity:0.85;transform:translateX(-50%) scale(1.04);}
+/* ── Portrait overlay ── */
+#rot{
+  display:none;position:fixed;inset:0;z-index:999;
+  background:#0a0014;color:#fff;
+  flex-direction:column;gap:18px;
+  align-items:center;justify-content:center;text-align:center;
+  font-family:'Courier New',monospace;
+}
+#rot .icon{font-size:72px;animation:rotpulse 1.2s ease-in-out infinite}
+@keyframes rotpulse{0%,100%{transform:rotate(0deg)}50%{transform:rotate(90deg)}}
+
+/* ══════════════════════════════════════
+   ハンバーガーメニュー
+══════════════════════════════════════ */
+.sp-menu-btn_01 {
+  background: #2e2520;
+  border: 1px solid rgba(184,151,90,0.4);
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  width: 54px;
+  height: 54px;
+  cursor: pointer;
+  z-index: 9999;
+  border-radius: 50%;
+  transition: background 0.3s;
+}
+.sp-menu-btn_01:hover {
+  background: rgba(46,37,32,0.85);
+}
+.sp-menu-btn_01 .line {
+  display: block;
+  position: absolute;
+  width: 24px;
+  height: 1px;
+  right: 15px;
+  background: #d4b87a;
+  transition: 0.3s ease-in-out;
+}
+.sp-menu-btn_01 span:nth-child(1) { top: 18px; }
+.sp-menu-btn_01 span:nth-child(2) { top: 26px; }
+.sp-menu-btn_01 span:nth-child(3) { top: 34px; }
+.sp-menu-btn_01.active span:nth-child(1) {
+  top: 26px;
+  transform: rotate(-45deg);
+}
+.sp-menu-btn_01.active span:nth-child(2) { opacity: 0; }
+.sp-menu-btn_01.active span:nth-child(3) {
+  top: 26px;
+  transform: rotate(45deg);
+}
+
+.header__navi_01 {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: min(320px, 80vw);
+  height: 100vh;
+  background: #2e2520;
+  border-left: 1px solid rgba(184,151,90,0.25);
+  transform: translateX(100%);
+  transition: transform 0.5s cubic-bezier(0.77,0,0.18,1);
+  z-index: 9998;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 60px 40px;
+}
+.header__navi_01.active { transform: translateX(0); }
+
+.nav-logo {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: rgba(184,151,90,0.6);
+  margin-bottom: 48px;
+  text-align: center;
+}
+.header__navi_01 ul { list-style: none; text-align: left; }
+.header__navi_01 li {
+  border-bottom: 1px solid rgba(184,151,90,0.12);
+  padding: 0;
+}
+.header__navi_01 li:first-child { border-top: 1px solid rgba(184,151,90,0.12); }
+.header__navi_01 li a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 0;
+  color: #faf7f2;
+  text-decoration: none;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  letter-spacing: 3px;
+  transition: color 0.3s, padding-left 0.3s;
+}
+.header__navi_01 li a:hover { color: #d4b87a; padding-left: 6px; }
+.header__navi_01 li a::after {
+  content: '→';
+  font-size: 12px;
+  color: #b8975a;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.header__navi_01 li a:hover::after { opacity: 1; }
+
+.nav-footer {
+  margin-top: 48px;
+  font-family: 'Courier New', monospace;
+  font-style: italic;
+  font-size: 15px;
+  color: rgba(184,151,90,0.4);
+  text-align: center;
+  letter-spacing: 2px;
+}
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(46,37,32,0.5);
+  backdrop-filter: blur(2px);
+  z-index: 9997;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+.menu-overlay.active { opacity: 1; pointer-events: all; }
+@media (max-width: 520px) {
+  .sp-menu-btn_01 { right: 14px; top: 14px; }
+}
+</style>
+</head>
+<body>
+
+<!-- 背景暗幕 -->
+<div class="menu-overlay" id="menuOverlay"></div>
+
+<!-- スライドインナビ -->
+<nav class="header__navi_01" id="sideNav">
+  <p class="nav-logo">WEDDING QUEST</p>
+  <ul>
+    <li><a href="index2.html">Top</a></li>
+    <li><a href="quiz.html">Quiz</a></li>
+    <li><a href="wedding_quest.html">Game</a></li>
+  </ul>
+  <p class="nav-footer">May 17 · 2026</p>
+</nav>
+
+<!-- ハンバーガーボタン -->
+<button class="sp-menu-btn_01" id="menuBtn" aria-label="メニューを開く">
+  <span class="line"></span>
+  <span class="line"></span>
+  <span class="line"></span>
+</button>
+
+<div id="wrapper">
+  <div id="ui-bar">
+    <div>🤵 GROOM<br><span id="uscore">000000</span></div>
+    <div>💍 RINGS<br>×<span id="urings">00</span></div>
+    <div>🌏 WORLD<br>1-1</div>
+    <div>⏱ TIME<br><span id="utime">400</span></div>
+    <div>❤️ LIVES<br><span id="ulives">3</span></div>
+  </div>
+  <canvas id="c" width="512" height="448"></canvas>
+</div>
+<div id="ctrl">
+  <div class="gbtn" id="bl">◀</div>
+  <div class="gbtn" id="bup">▲</div>
+  <div class="gbtn" id="br">▶</div>
+  <div class="gbtn" id="bj">JUMP</div>
+  <div class="gbtn" id="bstart">START</div>
+</div>
+<div id="ctrl-toggle">🎮 ボタン表示</div>
+<div id="rot">
+  <div class="icon">📱</div>
+  <div style="font-size:20px">スマホを横向きにしてください</div>
+  <div style="font-size:13px;color:#aaa;margin-top:4px">Rotate device to landscape</div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   CONSTANTS  ──  元コードで定義漏れしていた重要定数
+═══════════════════════════════════════════════ */
+const GRAVITY   = 0.55;   // 重力加速度（元コードで未定義→バグの原因）
+const FRICTION  = 0.80;   // 摩擦係数（元コードで未定義→バグの原因）
+const MAX_VX    = 6.5;
+const JUMP_VY   = -13.8;
+const TILE      = 32;
+const CW        = 512;
+const CH        = 448;
+const WORLD_W   = 3680;   // 115タイル幅
+
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+
+/* ═══════════════════════════════════════════════
+   AUDIO  ── WebAudio APIによる効果音・BGM
+═══════════════════════════════════════════════ */
+let AC;
+function getAC(){
+  if(!AC) AC=new(window.AudioContext||window.webkitAudioContext)();
+  if(AC.state==='suspended') AC.resume();
+  return AC;
+}
+function beep(f,d,t='square',v=0.1,dl=0){
+  const a=getAC(),o=a.createOscillator(),g=a.createGain();
+  o.type=t;o.frequency.value=f;
+  g.gain.setValueAtTime(v,a.currentTime+dl);
+  g.gain.exponentialRampToValueAtTime(0.0001,a.currentTime+dl+d);
+  o.connect(g);g.connect(a.destination);
+  o.start(a.currentTime+dl);o.stop(a.currentTime+dl+d);
+}
+function sfxJump() { beep(420,0.04); beep(660,0.07,'square',0.1,0.04); }
+function sfxRing() { beep(988,0.04,'triangle',0.14); beep(1318,0.09,'triangle',0.14,0.05); }
+function sfxPowerUp(){ [523,659,784,1047].forEach((f,i)=>beep(f,0.1,'triangle',0.14,i*0.09)); }
+function sfxBreak() { beep(220,0.1,'sawtooth',0.18); beep(155,0.09,'sawtooth',0.14,0.08); }
+function sfxStomp() { beep(180,0.09,'square',0.16); }
+function sfxDie()   { [650,520,420,330,250,180].forEach((f,i)=>beep(f,0.09,'square',0.12,i*0.07)); }
+function sfxWedding(){
+  const N=[[392,.22,0],[392,.22,.28],[392,.22,.56],[523,.45,.84],
+    [392,.45,1.4],[349,.22,1.9],[392,.45,2.15],[523,.65,2.7],
+    [659,.22,3.5],[659,.22,3.78],[659,.22,4.06],[698,.45,4.34],
+    [587,.45,4.9],[494,.22,5.4],[523,.45,5.65],[440,.9,6.2]];
+  N.forEach(([f,d,t])=>beep(f,d,'triangle',0.16,t));
+}
+function sfxCelebration(){
+  [523,659,784,880,1047,1175].forEach((f,i)=>beep(f,0.12,'triangle',0.18,i*0.06));
+}
+
+/* ═══════════════════════════════════════════════
+   STAGE DATA  ── タイルマップ定義
+═══════════════════════════════════════════════ */
+// ブロック型: G=地面 B=レンガ Q=ハテナ U=使用済みQ P=土管 C=チャペル
+const blocks = [];
+
+function AB(gx,gy,gw,gh,t,item=null){
+  for(let x=gx;x<gx+gw;x++)
+    for(let y=gy;y<gy+gh;y++)
+      blocks.push({x:x*TILE,y:y*TILE,w:TILE,h:TILE,t,item,hit:false,removed:false,
+        bounceOff:0,bounceDir:0});
+}
+function PIPE(gx,gy,gh){
+  // 土管cap（1行、幅2タイル）
+  blocks.push({x:gx*TILE,y:gy*TILE,w:2*TILE,h:TILE,t:'PC',hit:false,removed:false,bounceOff:0,bounceDir:0});
+  // 土管body（1行ずつ積む → 当たり判定を正確に）
+  for(let row=1;row<gh;row++){
+    blocks.push({x:gx*TILE,y:(gy+row)*TILE,w:2*TILE,h:TILE,t:'PB',hit:false,removed:false,bounceOff:0,bounceDir:0});
+  }
+}
+
+/* ─────────────────────────────────────────────
+   地面レイアウト（重複・見えないブロック完全除去）
+   土管は地面の上に乗るだけ → 地面側はその列を含めてOK
+   ただし土管bodyが地面と同じgx列に重なると
+   コリジョンが二重になるので土管列は地面に含めない
+
+   土管位置(gx, cap_gy):
+     T1: gx=28, cap_gy=10  → 地面穴: x=28〜29
+     T2: gx=38, cap_gy=9   → 地面穴: x=38〜39
+     T3: gx=46, cap_gy=8   → 地面穴: x=46〜47
+     T4: gx=60, cap_gy=8   → 地面穴: x=60〜61
+       ※ 元のT4はgx=57だったがレンガQ群(55〜59)と被るので右へ移動
+
+   地面区間:
+     [0 〜 27]  [30〜37]  [40〜45]  [48〜59]  [62〜80]
+     階段: 81〜86（地面行 gy=12 のみ; 上積みは別途）
+     [87〜114]
+───────────────────────────────────────────── */
+
+// 区間1: 0〜27
+AB(0,12,28,2,'G');
+// 区間2: 30〜37（穴=28〜29は土管T1）
+AB(30,12,8,2,'G');
+// 区間3: 40〜45（穴=38〜39は土管T2）
+AB(40,12,6,2,'G');
+// 区間4: 48〜59（穴=46〜47は土管T3）
+AB(48,12,12,2,'G');
+// 区間5: 62〜80（穴=60〜61は土管T4）
+AB(62,12,19,2,'G');
+// 階段（チャペル前）x=81〜86:
+// 各列は「段の頂上から地面行(gy=12)まで」= top_gy〜12の(13-top_gy)行
+// i=0: top=12(段なし=地面のみ), i=1: top=11, ..., i=5: top=7
+// → gy=12の行は後のチャペル区間と被らないよう6列分だけ定義
+AB(81,12,6,2,'G');      // 階段ベース（地面行のみ、全6列）
+// 各段の上積み（地面行=gy=12 より上の部分のみ）
+// i=0→段なし, i=1→gy=11で1行, i=2→gy=10で2行, ...i=5→gy=7で5行
+for(let i=1;i<6;i++) AB(81+i, 12-i, 1, i, 'G');
+// チャペル区間（x=87〜）
+AB(87,12,28,2,'G');
+
+// ── ハテナ・レンガブロック ──
+AB(16,9,1,1,'Q','ring');
+AB(20,9,1,1,'B'); AB(21,9,1,1,'Q','ring'); AB(22,9,1,1,'B');
+AB(23,9,1,1,'Q','ring'); AB(24,9,1,1,'B');
+AB(22,5,1,1,'Q','super');  // スーパーパワーアップ
+
+// x=55〜59 のQB群（土管T4をgx=60に移動したので競合なし）
+AB(55,9,1,1,'Q','ring'); AB(56,9,1,1,'B'); AB(57,9,1,1,'B');
+AB(58,9,1,1,'Q','ring'); AB(59,9,1,1,'B');
+
+AB(65,7,5,1,'B');          // 空中レンガ
+AB(70,7,1,1,'Q','ring');
+AB(75,9,1,1,'Q','ring');
+
+// ── 土管（地面と被らない位置のみ） ──
+// 地面は2タイル深さ(gy=12,13)なので土管bodyもgy=13まで延長
+// T1: cap=gy=10, body: gy=11,12,13
+PIPE(28,10,4);
+// T2: cap=gy=9,  body: gy=10,11,12,13
+PIPE(38,9,5);
+// T3: cap=gy=8,  body: gy=9,10,11,12,13
+PIPE(46,8,6);
+// T4: cap=gy=8,  body: gy=9,10,11,12,13
+PIPE(60,8,6);
+
+// ── チャペル（ゴール） ──
+// スペシャルブロック：当たり判定は薄い壁のみ（入口まで歩けるよう）
+blocks.push({x:89*TILE,y:3*TILE,w:8*TILE,h:9*TILE,t:'C',hit:false,removed:false,
+  wallOnly:true}); // チャペル本体（通過不可の前壁のみ）
+
+/* ═══════════════════════════════════════════════
+   ENEMIES  ── 敵キャラクター
+═══════════════════════════════════════════════ */
+function mkGoomba(gx){ return {x:gx*TILE,y:11*TILE,vx:-1.6,vy:0,w:28,h:28,
+  alive:true,squished:false,squishTimer:0,type:'goomba',grounded:false,dir:-1}; }
+function mkKoopa(gx){ return {x:gx*TILE,y:11*TILE,vx:-1.2,vy:0,w:28,h:36,
+  alive:true,squished:false,squishTimer:0,type:'koopa',grounded:false,dir:-1,shell:false}; }
+const enemies = [
+  mkGoomba(12), mkGoomba(22), mkGoomba(35),
+  mkKoopa(43),
+  mkGoomba(53), mkGoomba(65), mkGoomba(71),
+  mkKoopa(77),
+  mkGoomba(82)
+];
+
+/* ═══════════════════════════════════════════════
+   DYNAMIC ITEMS & PARTICLES
+═══════════════════════════════════════════════ */
+const items=[[], [], []]; // [0]=active items [1]=particles [2]=hearts
+let dynItems=[], particles=[], floatHearts=[];
+
+function spawnParticles(x,y,col,n=8,spd=4){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2, s=1+Math.random()*spd;
+    particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,
+      life:40,ml:40,color:col,sz:3+Math.random()*4});
+  }
+}
+function spawnFirework(cx,cy){
+  const cols=['#ff4455','#ffaa00','#ffff44','#44ff88','#44aaff','#ff44ff','#fff'];
+  for(let i=0;i<60;i++){
+    const a=Math.random()*Math.PI*2, s=0.5+Math.random()*9;
+    particles.push({x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s,
+      life:90+Math.random()*50,ml:140,color:cols[i%cols.length],sz:2+Math.random()*5});
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   PLAYER STATE
+═══════════════════════════════════════════════ */
+const player={x:0,y:0,vx:0,vy:0,w:24,h:32,big:false,
+  grounded:false,dir:1,frame:0,ftimer:0,
+  invincible:0,lives:3,score:0,rings:0,dead:false,deadTimer:0};
+
+function resetPlayer(){
+  player.x=2*TILE; player.y=11*TILE;
+  player.vx=0; player.vy=0; player.big=false; player.h=32;
+  player.grounded=false; player.dir=1; player.frame=0; player.ftimer=0;
+  player.dead=false; player.deadTimer=0; player.invincible=0;
+}
+
+/* ═══════════════════════════════════════════════
+   GAME STATE
+═══════════════════════════════════════════════ */
+let state='start'; // start|playing|dead|win|gameover
+let camX=0, timer=400, timerTick=0, fc=0;
+let brideX=91*TILE, brideAnim=0;
+let winStage=0, winTimer=0, groomReached=false;
+
+function resetGame(){
+  resetPlayer();
+  timer=400; timerTick=0; camX=0;
+  brideX=91*TILE; winStage=0; winTimer=0; groomReached=false;
+  blocks.forEach(b=>{ if(b.t==='U'){b.t='Q';b.hit=false;} b.removed=false; });
+  enemies.forEach((e,i)=>{
+    const orig=[mkGoomba(12),mkGoomba(22),mkGoomba(35),mkKoopa(43),
+      mkGoomba(53),mkGoomba(65),mkGoomba(71),mkKoopa(77),mkGoomba(82)][i];
+    Object.assign(e,orig);
+  });
+  dynItems=[]; particles=[]; floatHearts=[];
+}
+function startGame(){
+  if(state==='gameover'){ player.lives=3; player.score=0; player.rings=0; }
+  resetGame(); state='playing';
+}
+
+/* ═══════════════════════════════════════════════
+   INPUT  ── キーボード + タッチ両対応
+═══════════════════════════════════════════════ */
+const keys={};
+window.addEventListener('keydown',e=>{
+  keys[e.code]=true;
+  if(['Space','ArrowUp','ArrowLeft','ArrowRight','KeyZ','KeyX'].includes(e.code)) e.preventDefault();
+  if(state!=='playing' && (e.code==='Space'||e.code==='Enter'||e.code==='KeyZ')) startGame();
+});
+window.addEventListener('keyup',e=>keys[e.code]=false);
+
+function isMobile(){ return /Mobi|Android|iPhone|iPad|Touch/i.test(navigator.userAgent)||('ontouchstart' in window); }
+
+function showCtrl(show){
+  document.getElementById('ctrl').style.display = show ? 'block' : 'none';
+}
+
+function setupTouch(){
+  const toggle = document.getElementById('ctrl-toggle');
+
+  // スマホ：自動表示
+  if(isMobile()){
+    showCtrl(true);
+  } else {
+    // PC：トグルボタンを表示
+    toggle.style.display = 'block';
+    let ctrlVisible = true;
+    showCtrl(true);
+    resizeCanvas();
+    toggle.textContent = '🎮 ボタン非表示';
+    toggle.addEventListener('click', ()=>{
+      ctrlVisible = !ctrlVisible;
+      showCtrl(ctrlVisible);
+      toggle.textContent = ctrlVisible ? '🎮 ボタン非表示' : '🎮 ボタン表示';
+      resizeCanvas();
+    });
+  }
+
+  function tbtn(id,code){
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('touchstart',e=>{e.preventDefault();keys[code]=true;el.classList.add('act');
+      if(state!=='playing') startGame();},{passive:false});
+    el.addEventListener('touchend',  e=>{e.preventDefault();keys[code]=false;el.classList.remove('act');},{passive:false});
+    el.addEventListener('touchcancel',()=>{keys[code]=false;el.classList.remove('act');});
+    // マウスでも操作できるようにする（PC向け）
+    el.addEventListener('mousedown', e=>{e.preventDefault();keys[code]=true;el.classList.add('act');
+      if(state!=='playing') startGame();});
+    el.addEventListener('mouseup',   ()=>{keys[code]=false;el.classList.remove('act');});
+    el.addEventListener('mouseleave',()=>{keys[code]=false;el.classList.remove('act');});
+  }
+  tbtn('bl','ArrowLeft'); tbtn('br','ArrowRight');
+  tbtn('bup','Space'); tbtn('bj','Space');
+  tbtn('bstart','Space');
+}
+setupTouch();
+
+/* ── 縦向き検出 ── */
+function chkOrientation(){
+  const el=document.getElementById('rot');
+  if(isMobile() && window.innerHeight>window.innerWidth)
+    el.style.display='flex';
+  else el.style.display='none';
+}
+window.addEventListener('resize',()=>{chkOrientation();resizeCanvas();});
+window.addEventListener('orientationchange',()=>setTimeout(()=>{chkOrientation();resizeCanvas();},350));
+chkOrientation();
+
+/* ── キャンバス スケーリング ── */
+function resizeCanvas(){
+  const ctrlEl = document.getElementById('ctrl');
+  const ctrlVisible = ctrlEl && ctrlEl.style.display !== 'none';
+  const ctrlH = ctrlVisible ? 152 : 28;
+  const uiH   = 38;
+  const maxW  = window.innerWidth;
+  const maxH  = window.innerHeight - ctrlH - uiH;
+  const sc    = Math.min(maxW/CW, maxH/CH);
+  canvas.style.width  = (CW*sc)+'px';
+  canvas.style.height = (CH*sc)+'px';
+  const uiEl = document.getElementById('ui-bar');
+  uiEl.style.width    = (CW*sc)+'px';
+  uiEl.style.fontSize = Math.max(9, Math.round(12*sc))+'px';
+}
+resizeCanvas();
+
+/* ── UI更新 ── */
+function updateUI(){
+  document.getElementById('uscore').textContent=String(player.score).padStart(6,'0');
+  document.getElementById('urings').textContent=String(player.rings).padStart(2,'0');
+  document.getElementById('utime').textContent=String(Math.max(0,Math.ceil(timer)));
+  document.getElementById('ulives').textContent=player.lives;
+}
+
+/* ═══════════════════════════════════════════════
+   PIXEL ART DRAWING  ── スプライト描画
+═══════════════════════════════════════════════ */
+
+/* ── 地面タイル ── */
+function drawGround(x,y,isTop){
+  ctx.fillStyle='#7a5230'; ctx.fillRect(x,y,TILE,TILE);
+  if(isTop){
+    ctx.fillStyle='#4db840'; ctx.fillRect(x,y,TILE,6);
+    ctx.fillStyle='#3a9a30'; ctx.fillRect(x,y+6,TILE,4);
+    ctx.fillStyle='#60d050';
+    for(let i=2;i<TILE-2;i+=7) ctx.fillRect(x+i,y,3,4);
+  }
+  ctx.fillStyle='#6a4520';
+  ctx.fillRect(x+2,y+12,5,4); ctx.fillRect(x+18,y+21,4,4); ctx.fillRect(x+10,y+26,3,3);
+  ctx.fillStyle='#8a6040';
+  ctx.fillRect(x+24,y+14,4,3); ctx.fillRect(x+5,y+26,4,3);
+}
+
+/* ── レンガブロック ── */
+function drawBrick(x,y){
+  ctx.fillStyle='#a8522a'; ctx.fillRect(x,y,TILE,TILE);
+  ctx.fillStyle='#8b3a18';
+  ctx.fillRect(x,y+11,TILE,3); ctx.fillRect(x,y+23,TILE,3);
+  ctx.fillRect(x+15,y,3,11); ctx.fillRect(x+7,y+14,3,9); ctx.fillRect(x+22,y+14,3,9);
+  ctx.fillStyle='#c26a38';
+  ctx.fillRect(x+2,y+2,11,7); ctx.fillRect(x+20,y+2,9,7);
+  ctx.fillRect(x+2,y+14,3,7); ctx.fillRect(x+11,y+14,9,7); ctx.fillRect(x+26,y+14,3,7);
+  ctx.fillRect(x+2,y+26,11,3); ctx.fillRect(x+20,y+26,9,3);
+}
+
+/* ── ハテナブロック ── */
+function drawQ(x,y,used){
+  ctx.fillStyle=used?'#8a7050':'#e8c020'; ctx.fillRect(x,y,TILE,TILE);
+  const sh=used?'#665040':'#b89000';
+  ctx.fillStyle=sh;
+  ctx.fillRect(x,y,TILE,4); ctx.fillRect(x,y+TILE-4,TILE,4);
+  ctx.fillRect(x,y,4,TILE); ctx.fillRect(x+TILE-4,y,4,TILE);
+  if(!used){
+    ctx.fillStyle='#fff'; ctx.font='bold 20px monospace'; ctx.textAlign='center';
+    ctx.fillText('?',x+TILE/2+1,y+TILE-7);
+    ctx.textAlign='left';
+  } else {
+    ctx.fillStyle='#666'; ctx.fillRect(x+TILE/2-4,y+TILE/2-4,8,8);
+  }
+}
+
+/* ── 土管 ── */
+function drawPipeCap(x,y,w){
+  // キャップ本体（キャップは本体より左右3px広い）
+  ctx.fillStyle='#00a800'; ctx.fillRect(x-3,y,w+6,TILE);
+  // ハイライト（左端）
+  ctx.fillStyle='#00d800'; ctx.fillRect(x-1,y+2,6,TILE-4);
+  // 影（右端）
+  ctx.fillStyle='#006800'; ctx.fillRect(x+w-5,y+2,6,TILE-4);
+  // 上辺ライン
+  ctx.fillStyle='#00d800'; ctx.fillRect(x-3,y,w+6,3);
+  // 下辺ライン
+  ctx.fillStyle='#005500'; ctx.fillRect(x-3,y+TILE-3,w+6,3);
+}
+function drawPipeBody(x,y,w,h){
+  // ボディ本体
+  ctx.fillStyle='#00a800'; ctx.fillRect(x,y,w,h);
+  // 左ハイライト
+  ctx.fillStyle='#00d800'; ctx.fillRect(x+2,y,8,h);
+  // 右影
+  ctx.fillStyle='#006800'; ctx.fillRect(x+w-8,y,8,h);
+  // 中央縦ライン（光沢）
+  ctx.fillStyle='rgba(255,255,255,0.08)'; ctx.fillRect(x+4,y,4,h);
+}
+
+/* ── 新郎（プレイヤー） ── */
+function drawGroom(cx,cy,big,dir,frame,alpha=1){
+  ctx.save(); ctx.globalAlpha=alpha;
+  if(dir<0){ ctx.translate(Math.round(cx)*2,0); ctx.scale(-1,1); }
+  const s=big?1.55:1, W=22*s, H=36*s;
+  const lx=cx-W/2|0, ty=cy-H|0;
+
+  // シルクハット
+  ctx.fillStyle='#111';
+  ctx.fillRect(lx,ty-2*s,W,3*s);            // ブリム
+  ctx.fillRect(lx+3*s,ty-14*s,W-6*s,14*s); // 本体
+  ctx.fillStyle='#555';
+  ctx.fillRect(lx+3*s,ty-3*s,W-6*s,2*s);  // リボン
+
+  // 顔
+  ctx.fillStyle='#f5c59a'; ctx.fillRect(lx+2*s,ty,W-4*s,10*s);
+  // 目
+  ctx.fillStyle='#222';
+  ctx.fillRect(lx+4*s,ty+3*s,2*s,2*s); ctx.fillRect(lx+W-6*s,ty+3*s,2*s,2*s);
+  // 口
+  ctx.fillStyle='#c07060'; ctx.fillRect(lx+5*s,ty+7*s,W-10*s,s);
+  // 眉
+  ctx.fillStyle='#553322';
+  ctx.fillRect(lx+3*s,ty+1*s,4*s,s); ctx.fillRect(lx+W-7*s,ty+1*s,4*s,s);
+
+  // 燕尾服
+  ctx.fillStyle='#111'; ctx.fillRect(lx,ty+10*s,W,14*s);
+  // ワイシャツ
+  ctx.fillStyle='#eeeef8'; ctx.fillRect(lx+4*s,ty+10*s,W-8*s,12*s);
+  // 蝶ネクタイ
+  ctx.fillStyle='#000';
+  ctx.fillRect(lx+6*s,ty+11*s,3*s,2*s); ctx.fillRect(lx+W-9*s,ty+11*s,3*s,2*s);
+  ctx.fillRect(lx+W/2-s,ty+11*s,2*s,2*s);
+
+  // 腕
+  ctx.fillStyle='#111';
+  ctx.fillRect(lx-3*s,ty+10*s,4*s,12*s); ctx.fillRect(lx+W-s,ty+10*s,4*s,12*s);
+  // 手
+  ctx.fillStyle='#f5c59a';
+  ctx.fillRect(lx-4*s,ty+21*s,5*s,4*s); ctx.fillRect(lx+W-s,ty+21*s,5*s,4*s);
+  // 白い手袋
+  ctx.fillStyle='#fff';
+  ctx.fillRect(lx-4*s,ty+21*s,5*s,s); ctx.fillRect(lx+W-s,ty+21*s,5*s,s);
+
+  // 足（アニメ）
+  const lOff=frame===1?-4*s:0, rOff=frame===1?4*s:0;
+  ctx.fillStyle='#1a1a2e';
+  ctx.fillRect(lx+2*s,ty+24*s,W/2-3*s,11*s+lOff);
+  ctx.fillRect(lx+W/2+s,ty+24*s,W/2-3*s,11*s+rOff);
+  // 靴
+  ctx.fillStyle='#0a0a0a';
+  ctx.fillRect(lx,ty+35*s+lOff,W/2,4*s);
+  ctx.fillRect(lx+W/2-s,ty+35*s+rOff,W/2+2*s,4*s);
+
+  ctx.restore();
+}
+
+/* ── 花嫁 ── */
+function drawBride(cx,cy,frame){
+  const bob=Math.sin(fc*0.06)*2;
+  ctx.save(); ctx.translate(0,bob);
+
+  // ベール
+  ctx.fillStyle='rgba(255,255,240,0.55)';
+  ctx.beginPath();
+  ctx.moveTo(cx-10,cy-42); ctx.quadraticCurveTo(cx-28,cy-10,cx-22,cy+14);
+  ctx.quadraticCurveTo(cx-18,cy+16,cx-10,cy-38); ctx.closePath(); ctx.fill();
+
+  // ティアラ
+  ctx.fillStyle='#ffd700';
+  ctx.fillRect(cx-9,cy-46,18,4);
+  ctx.fillRect(cx-3,cy-52,6,8); ctx.fillRect(cx-7,cy-50,4,6); ctx.fillRect(cx+3,cy-50,4,6);
+  // 宝石
+  ctx.fillStyle='#88eeff'; ctx.beginPath(); ctx.arc(cx,cy-53,3,0,Math.PI*2); ctx.fill();
+
+  // 髪
+  ctx.fillStyle='#8b6040'; ctx.fillRect(cx-10,cy-42,20,8);
+  ctx.fillRect(cx-11,cy-40,4,16); ctx.fillRect(cx+7,cy-40,4,16);
+
+  // 顔
+  ctx.fillStyle='#f5c59a'; ctx.fillRect(cx-8,cy-34,16,14);
+  // 目
+  ctx.fillStyle='#333';
+  ctx.fillRect(cx-5,cy-31,3,3); ctx.fillRect(cx+2,cy-31,3,3);
+  // まつ毛
+  ctx.fillStyle='#222';
+  ctx.fillRect(cx-6,cy-32,2,1); ctx.fillRect(cx+4,cy-32,2,1);
+  // 口（笑顔）
+  ctx.fillStyle='#d06060'; ctx.fillRect(cx-3,cy-24,6,2);
+  ctx.fillRect(cx-4,cy-25,2,2); ctx.fillRect(cx+2,cy-25,2,2);
+  // ほっぺ
+  ctx.fillStyle='rgba(255,160,160,0.4)';
+  ctx.beginPath(); ctx.arc(cx-7,cy-27,5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+7,cy-27,5,0,Math.PI*2); ctx.fill();
+
+  // ドレス（上体）
+  ctx.fillStyle='#fffdf5'; ctx.fillRect(cx-10,cy-20,20,16);
+  // レース装飾
+  ctx.fillStyle='#f0e8d0';
+  ctx.fillRect(cx-8,cy-18,3,12); ctx.fillRect(cx+5,cy-18,3,12);
+  // ドレススカート
+  ctx.fillStyle='#fffdf5';
+  ctx.beginPath();
+  ctx.moveTo(cx-10,cy-4); ctx.lineTo(cx-22,cy+18); ctx.lineTo(cx+22,cy+18);
+  ctx.lineTo(cx+10,cy-4); ctx.closePath(); ctx.fill();
+  // スカートのレース
+  ctx.strokeStyle='#e8dcc0'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx-22,cy+17); ctx.lineTo(cx+22,cy+17); ctx.stroke();
+  // フリル
+  for(let i=-20;i<=20;i+=8){
+    ctx.fillStyle='rgba(255,220,200,0.6)';
+    ctx.beginPath(); ctx.arc(cx+i,cy+18,4,0,Math.PI*2); ctx.fill();
+  }
+
+  // ブーケ（花束）
+  ctx.fillStyle='#ff1493'; ctx.beginPath(); ctx.arc(cx+14,cy-12,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ff69b4'; ctx.beginPath(); ctx.arc(cx+11,cy-16,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ffe4e1'; ctx.beginPath(); ctx.arc(cx+16,cy-17,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#ff4500'; ctx.beginPath(); ctx.arc(cx+13,cy-20,3,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#7cfc00'; ctx.fillRect(cx+12,cy-8,2,6); ctx.fillRect(cx+14,cy-6,4,2);
+
+  ctx.restore();
+}
+
+/* ── グンバ（敵） ── */
+function drawGoomba(x,y,sq){
+  if(sq){ // 踏まれた
+    ctx.fillStyle='#7a3a10'; ctx.fillRect(x-12,y-4,24,8);
+    ctx.fillStyle='#9a4a20'; ctx.fillRect(x-10,y-2,20,4);
+    ctx.fillStyle='#222'; ctx.fillRect(x-8,y-4,5,3); ctx.fillRect(x+3,y-4,5,3); return;
+  }
+  // 胴体
+  ctx.fillStyle='#8b4513'; ctx.fillRect(x-12,y-12,24,16);
+  // 頭
+  ctx.fillStyle='#a0522d'; ctx.fillRect(cx=>cx,cy=>cy,24,18);
+  ctx.fillStyle='#a0522d'; ctx.fillRect(x-13,y-24,26,16);
+  // 目
+  ctx.fillStyle='#fff'; ctx.fillRect(x-9,y-22,7,6); ctx.fillRect(x+2,y-22,7,6);
+  ctx.fillStyle='#000'; ctx.fillRect(x-7,y-21,4,4); ctx.fillRect(x+4,y-21,4,4);
+  ctx.fillStyle='#fff'; ctx.fillRect(x-6,y-22,2,2); ctx.fillRect(x+5,y-22,2,2); // 白目ハイライト
+  // 怒り眉
+  ctx.fillStyle='#000';
+  ctx.fillRect(x-10,y-24,8,2); ctx.fillRect(x+2,y-24,8,2);
+  // 足
+  ctx.fillStyle='#6a3010';
+  ctx.fillRect(x-14,y+2,10,8); ctx.fillRect(x+4,y+2,10,8);
+  // 足の先
+  ctx.fillStyle='#4a2008';
+  ctx.fillRect(x-16,y+8,12,4); ctx.fillRect(x+4,y+8,12,4);
+}
+
+/* ── クッパ系（敵2） ── */
+function drawKoopa(x,y,shell){
+  if(shell){
+    ctx.fillStyle='#228b22'; ctx.ellipse&&(()=>{})();
+    ctx.fillRect(x-12,y-16,24,20);
+    ctx.fillStyle='#32cd32'; ctx.fillRect(x-10,y-14,20,16);
+    ctx.strokeStyle='#1a6a1a'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(x,y-14); ctx.lineTo(x,y+6);
+    ctx.moveTo(x-10,y-4); ctx.lineTo(x+10,y-4); ctx.stroke();
+    return;
+  }
+  // 甲羅
+  ctx.fillStyle='#228b22'; ctx.fillRect(x-11,y-18,22,22);
+  ctx.fillStyle='#32cd32'; ctx.fillRect(x-9,y-16,18,18);
+  ctx.strokeStyle='#1a6a1a'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(x,y-16); ctx.lineTo(x,y+4);
+  ctx.moveTo(x-9,y-6); ctx.lineTo(x+9,y-6); ctx.stroke();
+  // 頭
+  ctx.fillStyle='#90ee90'; ctx.fillRect(x-7,y-28,14,12);
+  // 目
+  ctx.fillStyle='#fff'; ctx.fillRect(x-5,y-27,4,4); ctx.fillRect(x+1,y-27,4,4);
+  ctx.fillStyle='#000'; ctx.fillRect(cx=>cx,cy=>cy,3,3);
+  ctx.fillStyle='#000'; ctx.fillRect(x-4,y-26,2,2); ctx.fillRect(x+2,y-26,2,2);
+  // 足
+  ctx.fillStyle='#228b22';
+  ctx.fillRect(x-14,y+3,10,10); ctx.fillRect(x+4,y+3,10,10);
+  ctx.fillStyle='#f5c59a'; // 爪
+  ctx.fillRect(x-14,y+10,3,4); ctx.fillRect(x+4,y+10,3,4);
+}
+
+/* ── 指輪アイテム ── */
+function drawRingItem(x,y){
+  const bob=Math.sin(fc*0.08)*3;
+  ctx.strokeStyle='#ffd700'; ctx.lineWidth=4;
+  ctx.beginPath(); ctx.ellipse(x,y+bob,11,7,0,0,Math.PI*2); ctx.stroke();
+  ctx.strokeStyle='#fff0a0'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.ellipse(x-2,y+bob-1,7,4,Math.PI/5,0,Math.PI); ctx.stroke();
+  // ダイヤ
+  ctx.fillStyle='#88eeff';
+  ctx.beginPath(); ctx.moveTo(x,y+bob-18); ctx.lineTo(x+7,y+bob-13);
+  ctx.lineTo(x,y+bob-9); ctx.lineTo(x-7,y+bob-13); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.8)';
+  ctx.beginPath(); ctx.moveTo(x-2,y+bob-18); ctx.lineTo(x+3,y+bob-14);
+  ctx.lineTo(x,y+bob-11); ctx.closePath(); ctx.fill();
+}
+
+/* ── チャペル描画 ── */
+function drawChapel(bx,by,bw,bh){
+  // 本体建物
+  ctx.fillStyle='#fff8f0'; ctx.fillRect(bx,by,bw,bh);
+  // 窓ライン
+  ctx.strokeStyle='#ddd0c8'; ctx.lineWidth=2;
+  ctx.strokeRect(bx,by,bw,bh);
+  // 屋根
+  ctx.fillStyle='#e8b0c0';
+  ctx.beginPath(); ctx.moveTo(bx-12,by);
+  ctx.lineTo(bx+bw/2,by-70); ctx.lineTo(bx+bw+12,by); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#d09aa8';
+  ctx.beginPath(); ctx.moveTo(bx-12,by);
+  ctx.lineTo(bx+bw/2,by-70); ctx.lineTo(bx+bw+12,by);
+  ctx.strokeStyle='#c08898'; ctx.lineWidth=2; ctx.stroke();
+  // 屋根タイル
+  ctx.strokeStyle='#c898a8'; ctx.lineWidth=1.5;
+  for(let sy=by-60;sy<by;sy+=10){
+    const p=(by-sy)/70, rw=p*bw;
+    ctx.beginPath(); ctx.moveTo(bx+bw/2-rw/2,sy);
+    ctx.lineTo(bx+bw/2+rw/2,sy); ctx.stroke();
+  }
+  // 十字架
+  ctx.fillStyle='#ffd700';
+  ctx.fillRect(bx+bw/2-5,by-105,10,50); ctx.fillRect(bx+bw/2-20,by-90,40,10);
+  ctx.strokeStyle='#ccaa00'; ctx.lineWidth=1.5;
+  ctx.strokeRect(bx+bw/2-5,by-105,10,50); ctx.strokeRect(bx+bw/2-20,by-90,40,10);
+
+  // 入口アーチ
+  ctx.fillStyle='#6b4428';
+  ctx.fillRect(bx+bw/2-16,by+bh-60,32,60);
+  ctx.beginPath(); ctx.arc(bx+bw/2,by+bh-60,16,Math.PI,0); ctx.fill();
+  // ドアノブ
+  ctx.fillStyle='#ffd700'; ctx.beginPath(); ctx.arc(bx+bw/2+9,by+bh-35,4,0,Math.PI*2); ctx.fill();
+
+  // アーチ窓（左右）
+  function archWindow(wx,wy){
+    ctx.fillStyle='#87ceeb'; ctx.fillRect(wx,wy,22,30);
+    ctx.beginPath(); ctx.arc(wx+11,wy,11,Math.PI,0); ctx.fill();
+    ctx.strokeStyle='#fff8f0'; ctx.lineWidth=2.5;
+    ctx.strokeRect(wx,wy,22,30);
+    ctx.beginPath(); ctx.arc(wx+11,wy,11,Math.PI,0,false); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(wx+11,wy-11); ctx.lineTo(wx+11,wy+30);
+    ctx.moveTo(wx,wy+15); ctx.lineTo(wx+22,wy+15); ctx.stroke();
+    // 光の差し込み
+    ctx.fillStyle='rgba(255,255,220,0.3)';
+    ctx.fillRect(wx+2,wy+2,6,26);
+  }
+  archWindow(bx+14,by+28); archWindow(bx+bw-36,by+28);
+  archWindow(bx+14,by+88); archWindow(bx+bw-36,by+88);
+
+  // 花飾り（エントランス）
+  const flC=['#ff69b4','#ff1493','#ffd700','#ff6347','#ff69b4'];
+  for(let i=0;i<6;i++){
+    ctx.fillStyle=flC[i%5];
+    ctx.beginPath(); ctx.arc(bx+12+i*(bw-24)/5,by,7,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#fff200'; ctx.beginPath(); ctx.arc(bx+12+i*(bw-24)/5,by,3,0,Math.PI*2); ctx.fill();
+  }
+
+  // JUST MARRIEDバナー
+  ctx.fillStyle='rgba(255,20,100,0.88)';
+  ctx.fillRect(bx+bw/2-62,by+bh/2-18,124,34);
+  ctx.fillStyle='#fff'; ctx.font='bold 12px Courier New'; ctx.textAlign='center';
+  ctx.fillText('💒 JUST MARRIED 💒',bx+bw/2,by+bh/2+5);
+  ctx.textAlign='left';
+}
+
+/* ── 雲 ── */
+function drawCloud(px,py,sc){
+  ctx.save(); ctx.translate(px,py); ctx.scale(sc,sc);
+  ctx.fillStyle='rgba(255,255,255,0.9)';
+  ctx.beginPath(); ctx.arc(0,0,26,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(32,6,22,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-28,6,20,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(8,6,32,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+/* ═══════════════════════════════════════════════
+   COLLISION  ── 軸分離衝突判定（バグなし）
+═══════════════════════════════════════════════ */
+function overlap(ax,ay,aw,ah,bx,by,bw,bh){
+  return ax<bx+bw&&ax+aw>bx&&ay<by+bh&&ay+ah>by;
+}
+
+function resolveBlocks(ent, doHit=false){
+  const removeList=[];
+  ent.grounded=false;
+
+  const active=blocks.filter(b=>!b.removed&&b.t!=='C');
+  const thresh=Math.abs(ent.vy)+TILE; // 1フレームの最大移動量+余裕
+
+  /* ── STEP1: Y軸解決 ── */
+  let landBlock=null, landDist=Infinity;
+  let ceilBlock=null, ceilIdx=-1, ceilDist=Infinity;
+
+  active.forEach((b,i)=>{
+    // X方向に重なっているか（1px余裕）
+    if(ent.x+ent.w<=b.x+1 || ent.x>=b.x+b.w-1) return;
+
+    if(ent.vy>=0){
+      // 落下/静止: プレイヤー足がブロック上面を貫通した量
+      const d=ent.y+ent.h-b.y;
+      if(d>=-1&&d<thresh&&ent.y<b.y+b.h){ // ブロック内に潜り込んでいる
+        if(d<landDist){ landDist=d; landBlock=b; }
+      }
+    } else {
+      // 上昇: ヘッドがブロック下面を貫通した量
+      const d=b.y+b.h-ent.y;
+      if(d>=-1&&d<thresh&&ent.y+ent.h>b.y){
+        if(d<ceilDist){ ceilDist=d; ceilBlock=b; ceilIdx=i; }
+      }
+    }
+  });
+
+  if(landBlock){
+    ent.y=landBlock.y-ent.h;
+    ent.vy=0; ent.grounded=true;
+  }
+  if(ceilBlock){
+    ent.y=ceilBlock.y+ceilBlock.h;
+    ent.vy=0;
+    if(doHit){
+      if(ceilBlock.t==='Q'&&!ceilBlock.hit){
+        ceilBlock.hit=true; ceilBlock.t='U';
+        ceilBlock.bounceOff=8; ceilBlock.bounceDir=-1;
+        if(ceilBlock.item==='ring'){
+          player.score+=200; player.rings++;
+          sfxRing();
+          spawnParticles(ceilBlock.x+16,ceilBlock.y,'#ffd700',6,3);
+        } else if(ceilBlock.item==='super'){
+          dynItems.push({x:ceilBlock.x+4,y:ceilBlock.y-TILE,vx:2.5,vy:-4,w:24,h:24,
+            type:'ring',grounded:false});
+          sfxPowerUp();
+        }
+      } else if(ceilBlock.t==='B'&&player.big){
+        spawnParticles(ceilBlock.x+16,ceilBlock.y+16,'#a0522d',10,5);
+        sfxBreak(); removeList.push(ceilIdx);
+      }
+    }
+  }
+
+  /* ── STEP2: X軸解決（Y解決後の座標で） ── */
+  active.forEach((b,i)=>{
+    if(!overlap(ent.x,ent.y,ent.w,ent.h,b.x,b.y,b.w,b.h)) return;
+    const ovY=Math.min(ent.y+ent.h-b.y, b.y+b.h-ent.y);
+    if(ovY<=2) return; // 2px以下は段差乗り上げとみなしスキップ
+    const fromLeft=(ent.x+ent.w/2)<(b.x+b.w/2);
+    if(fromLeft){ ent.x=b.x-ent.w; }
+    else        { ent.x=b.x+b.w;   }
+    if(doHit){ ent.vx=0; }
+    else{ ent.vx=fromLeft?-Math.abs(ent.vx):Math.abs(ent.vx); } // 敵反転
+  });
+
+  removeList.sort((a,b)=>b-a).forEach(i=>blocks.splice(i,1));
+}
+
+
+/* ═══════════════════════════════════════════════
+   UPDATE  ── メインゲームロジック
+═══════════════════════════════════════════════ */
+function update(){
+  fc++;
+  if(state==='start'||state==='gameover') return;
+
+  /* ── 死亡アニメ ── */
+  if(state==='dead'){
+    player.deadTimer--;
+    player.vy+=GRAVITY*0.7; player.y+=player.vy;
+    if(player.deadTimer<=0){
+      player.lives--;
+      if(player.lives<=0) state='gameover';
+      else{ resetGame(); state='playing'; }
+    }
+    return;
+  }
+
+  /* ── 勝利演出 ── */
+  if(state==='win'){
+    winTimer++;
+    brideAnim=Math.floor(fc/18)%2;
+    // 新郎が自動で花嫁のそばへ
+    if(!groomReached&&player.x+player.w<brideX-30){
+      player.vx=2.8; player.x+=player.vx; player.dir=1;
+      player.ftimer++; if(player.ftimer>7){player.frame=1-player.frame;player.ftimer=0;}
+    } else if(!groomReached){
+      player.vx=0; player.frame=0; groomReached=true;
+      sfxCelebration();
+    }
+    if(groomReached&&winTimer%65===0){
+      spawnFirework(camX+150+Math.random()*210, 80+Math.random()*160);
+    }
+    if(fc%22===0&&groomReached){
+      floatHearts.push({x:player.x+12,y:player.y,
+        vx:(Math.random()-0.5)*3,vy:-2.5-Math.random()*2,
+        life:70,char:['❤️','💕','💖','🌸','✨'][Math.floor(Math.random()*5)]});
+    }
+    floatHearts=floatHearts.filter(h=>{h.x+=h.vx;h.y+=h.vy;h.vy+=0.04;return --h.life>0;});
+    camX+=(Math.max(0,player.x-CW*0.4)-camX)*0.1;
+    camX=Math.max(0,Math.min(WORLD_W-CW,camX));
+    // パーティクル
+    particles=particles.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.15;return --p.life>0;});
+    return;
+  }
+
+  /* ── タイマー ── */
+  timerTick++; if(timerTick>=42){timerTick=0;timer--;}
+  if(timer<=0){ playerDead(); return; }
+
+  /* ── プレイヤー操作 ── */
+  const mv=keys['ArrowLeft']||keys['ArrowRight'];
+  if(keys['ArrowRight']){ player.vx+=0.75; player.dir=1; }
+  if(keys['ArrowLeft'] ){ player.vx-=0.75; player.dir=-1; }
+  if((keys['Space']||keys['ArrowUp']||keys['KeyZ'])&&player.grounded){
+    player.vy=JUMP_VY; player.grounded=false; sfxJump();
+  }
+
+  // 物理演算（元コードで定義漏れしていたGRAVITY/FRICTIONを正しく使用）
+  player.vx=Math.max(-MAX_VX,Math.min(MAX_VX,player.vx));
+  player.vx*=FRICTION;
+  if(Math.abs(player.vx)<0.15) player.vx=0;
+  player.vy=Math.min(player.vy+GRAVITY,16);
+  player.x+=player.vx; player.y+=player.vy;
+
+  // 歩行アニメ
+  if(mv&&player.grounded){ player.ftimer++; if(player.ftimer>9){player.frame=1-player.frame;player.ftimer=0;}}
+  else if(!mv) player.frame=0;
+
+  // ワールド境界
+  if(player.x<0){player.x=0;player.vx=0;}
+  // 落下死
+  if(player.y>CH+200){ playerDead(); return; }
+
+  if(player.invincible>0) player.invincible--;
+  resolveBlocks(player,true);
+
+  /* ── 動的アイテム ── */
+  dynItems=dynItems.filter(it=>{
+    it.vy=Math.min(it.vy+GRAVITY*0.6,14); it.x+=it.vx; it.y+=it.vy;
+    resolveBlocks(it,false);
+    if(overlap(player.x,player.y,player.w,player.h,it.x,it.y,it.w,it.h)){
+      player.big=true; player.h=44; player.y-=12;
+      player.score+=1000; sfxPowerUp();
+      spawnParticles(it.x+12,it.y,'#ffd700',12,4);
+      return false;
+    }
+    return it.y<CH+100;
+  });
+
+  /* ── 敵 ── */
+  enemies.forEach(en=>{
+    if(!en.alive) return;
+    if(en.squished){ en.squishTimer--; if(en.squishTimer<=0) en.alive=false; return; }
+    en.vy=Math.min(en.vy+GRAVITY*0.75,14);
+    en.x+=en.vx; en.y+=en.vy;
+    const prevVx=en.vx;
+    resolveBlocks(en,false);
+    if(prevVx!==0&&en.vx===0) en.vx=-prevVx; // 壁で反転
+    if(en.y>CH+200) en.alive=false;
+
+    // プレイヤーとの衝突
+    if(player.invincible===0&&overlap(player.x,player.y,player.w,player.h,en.x,en.y,en.w,en.h)){
+      const stomp=player.vy>0&&player.y+player.h<en.y+en.h*0.5;
+      if(stomp){
+        en.squished=true; en.squishTimer=30;
+        player.vy=-9; player.score+=100; sfxStomp();
+        spawnParticles(en.x+(en.w/2),en.y+(en.h/2),'#8b4513',5,3);
+      } else {
+        if(player.big){ player.big=false;player.h=32;player.y+=12;player.invincible=120;sfxDie();
+          spawnParticles(player.x+12,player.y+16,'#ff4444',8,3);
+        } else { playerDead(); }
+      }
+    }
+  });
+
+  /* ── ブロックバウンス ── */
+  blocks.forEach(b=>{
+    if(b.bounceOff>0){ b.bounceOff-=1.5; if(b.bounceOff<=0) b.bounceOff=0; }
+  });
+
+  /* ── パーティクル ── */
+  particles=particles.filter(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;return --p.life>0;});
+
+  /* ── カメラ ── */
+  const tx=player.x-CW*0.38;
+  camX+=(tx-camX)*0.14;
+  camX=Math.max(0,Math.min(WORLD_W-CW,camX));
+
+  /* ── ゴール到達チェック ── */
+  if(player.x+player.w>brideX-40&&state==='playing'){
+    state='win'; sfxWedding();
+  }
+
+  updateUI();
+}
+
+function playerDead(){
+  if(player.dead) return;
+  sfxDie(); player.dead=true;
+  player.deadTimer=100; player.vy=-14;
+  player.grounded=false; state='dead';
+}
+
+/* ═══════════════════════════════════════════════
+   DRAW  ── 描画
+═══════════════════════════════════════════════ */
+const cloudPos=[
+  {x:250,y:55,s:1.0},{x:580,y:38,s:0.75},{x:920,y:62,s:1.15},
+  {x:1300,y:48,s:0.9},{x:1680,y:66,s:1.2},{x:2050,y:40,s:0.8},
+  {x:2400,y:58,s:1.05},{x:2750,y:44,s:0.85},{x:3100,y:62,s:1.1}
+];
+
+function draw(){
+  // 空
+  const sky=ctx.createLinearGradient(0,0,0,CH);
+  sky.addColorStop(0,'#5a90fc'); sky.addColorStop(1,'#88c4ff');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,CW,CH);
+
+  // 雲（視差スクロール）
+  cloudPos.forEach(c=>{
+    const px=c.x-camX*0.38;
+    if(px>-120&&px<CW+120) drawCloud(px,c.y,c.s);
+  });
+
+  ctx.save();
+  ctx.translate(-Math.round(camX),0);
+
+  // ── ブロック描画 ──
+  blocks.forEach(b=>{
+    if(b.removed) return;
+    const sx=b.x-camX;
+    // カリング無効化（デバッグ用）
+    const by_=b.y+(b.bounceOff||0)*(b.bounceDir||0);
+    switch(b.t){
+      case 'G':{
+        const top=!blocks.some(o=>o!==b&&o.t==='G'&&o.x===b.x&&o.y===b.y-TILE);
+        drawGround(b.x,by_,top); break;}
+      case 'B': drawBrick(b.x,by_); break;
+      case 'Q': drawQ(b.x,by_,false); break;
+      case 'U': drawQ(b.x,by_,true);  break;
+      case 'PC': drawPipeCap(b.x,by_,b.w); break;
+      case 'PB': drawPipeBody(b.x,by_,b.w,b.h); break;
+      case 'C':  drawChapel(b.x,b.y,b.w,b.h); break;
+    }
+  });
+
+  // ── 動的アイテム ──
+  dynItems.forEach(it=>drawRingItem(it.x+12,it.y+12));
+
+  // ── 敵 ──
+  enemies.forEach(en=>{
+    if(!en.alive) return;
+    const ex=en.x+(en.w>>1), ey=en.y+en.h;
+    if(en.type==='goomba') drawGoomba(ex,ey,en.squished);
+    else drawKoopa(ex,ey,en.squished);
+  });
+
+  // ── 花嫁 ──
+  drawBride(brideX+14, player.big?352-12:11*TILE, brideAnim);
+
+  // ── プレイヤー ──
+  const showPlayer=!player.dead||(fc%6<3);
+  const alpha=player.invincible>0?(fc%6<3?0.35:1):1;
+  if(showPlayer) drawGroom(
+    player.x+player.w/2, player.y+player.h,
+    player.big, player.dir, player.frame, alpha);
+
+  // ── パーティクル ──
+  particles.forEach(p=>{
+    ctx.globalAlpha=(p.life/p.ml)*0.9;
+    ctx.fillStyle=p.color;
+    ctx.fillRect(p.x-p.sz/2,p.y-p.sz/2,p.sz,p.sz);
+  });
+  ctx.globalAlpha=1;
+
+  // ── フローティングハート ──
+  floatHearts.forEach(h=>{
+    ctx.globalAlpha=h.life/70;
+    ctx.font='18px serif'; ctx.textAlign='center';
+    ctx.fillText(h.char,h.x,h.y);
+  });
+  ctx.globalAlpha=1; ctx.textAlign='left';
+
+  ctx.restore();
+
+  // ── オーバーレイ ──
+  if(state==='start')    drawStart();
+  else if(state==='gameover') drawGameOver();
+  else if(state==='win'&&groomReached&&winTimer>55) drawWin();
+  else if(state==='dead'){ drawDead(); }
+}
+
+/* ── 各スクリーン ── */
+function drawStart(){
+  ctx.fillStyle='rgba(0,0,20,0.78)'; ctx.fillRect(0,0,CW,CH);
+  ctx.textAlign='center';
+  // タイトル
+  ctx.fillStyle='#ffd700'; ctx.font='bold 34px "Courier New"';
+  ctx.fillText('💒 WEDDING QUEST',CW/2,95);
+  ctx.fillStyle='#fff0a0'; ctx.font='bold 16px "Courier New"';
+  ctx.fillText('〜新郎よ、花嫁のもとへ走れ！〜',CW/2,128);
+  // 操作説明
+  ctx.fillStyle='rgba(255,255,255,0.15)'; ctx.fillRect(CW/2-155,148,310,110);
+  ctx.fillStyle='#ddeeff'; ctx.font='14px "Courier New"';
+  const lines=['⬅ ➡ キー：移動','スペース / Z：ジャンプ',
+    '敵を踏むと撃退！　ハテナ(?)を叩こう','チャペルの花嫁を目指せ！'];
+  lines.forEach((l,i)=>ctx.fillText(l,CW/2,170+i*24));
+  ctx.fillStyle='#aaccff'; ctx.font='12px "Courier New"';
+  ctx.fillText('スマホ：画面下のボタンで操作 / 横向き推奨',CW/2,272);
+  // 点滅スタートメッセージ
+  if(Math.floor(fc/22)%2===0){
+    ctx.fillStyle='#fff'; ctx.font='bold 20px "Courier New"';
+    ctx.fillText('▶  スタートする  ◀',CW/2,318);
+  }
+  // キャラクタープレビュー
+  drawGroom(CW/2-65,CH-55,false,1,Math.floor(fc/14)%2);
+  drawBride(CW/2+65,CH-55,0);
+  ctx.font='28px serif'; ctx.fillText('💍',CW/2,CH-78);
+  ctx.textAlign='left';
+}
+function drawGameOver(){
+  ctx.fillStyle='rgba(0,0,0,0.88)'; ctx.fillRect(0,0,CW,CH);
+  ctx.textAlign='center';
+  ctx.fillStyle='#ff3344'; ctx.font='bold 42px "Courier New"';
+  ctx.fillText('GAME OVER',CW/2,160);
+  ctx.fillStyle='#fff'; ctx.font='18px "Courier New"';
+  ctx.fillText('SCORE : '+String(player.score).padStart(6,'0'),CW/2,210);
+  ctx.fillText('RINGS : '+player.rings+'  💍',CW/2,238);
+  if(Math.floor(fc/22)%2===0){
+    ctx.fillStyle='#ffd700'; ctx.font='16px "Courier New"';
+    ctx.fillText('スペース / Aボタン でリトライ',CW/2,285);
+  }
+  ctx.textAlign='left';
+}
+function drawDead(){
+  ctx.fillStyle='rgba(0,0,0,0.52)'; ctx.fillRect(0,0,CW,CH);
+  ctx.textAlign='center';
+  ctx.fillStyle='#fff'; ctx.font='bold 26px "Courier New"';
+  ctx.fillText('💔 MISS...',CW/2,CH/2-20);
+  ctx.font='16px "Courier New"';
+  ctx.fillText('残り ❤️  ×  '+player.lives,CW/2,CH/2+16);
+  ctx.textAlign='left';
+}
+function drawWin(){
+  ctx.fillStyle='rgba(15,0,30,0.72)'; ctx.fillRect(0,0,CW,CH);
+  ctx.textAlign='center';
+  // レインボーテキスト
+  const rb=['#ff4455','#ff8800','#ffee00','#44ff88','#44aaff','#cc44ff'];
+  const msg='!! HAPPY WEDDING !!';
+  ctx.font='bold 28px "Courier New"';
+  const cw2=CW/2, start=cw2-msg.length*8.5;
+  msg.split('').forEach((ch,i)=>{
+    ctx.fillStyle=rb[i%rb.length];
+    const wave=Math.sin(fc*0.12+i*0.45)*7;
+    ctx.fillText(ch,start+i*17,130+wave);
+  });
+  ctx.fillStyle='#fff0cc'; ctx.font='bold 18px "Courier New"';
+  ctx.fillText('おめでとうございます！ 🎊',CW/2,178);
+  ctx.fillStyle='#ddeeff'; ctx.font='16px "Courier New"';
+  ctx.fillText('SCORE : '+String(player.score).padStart(6,'0'),CW/2,214);
+  ctx.fillText('集めた指輪 💍 × '+player.rings,CW/2,240);
+  ctx.font='14px "Courier New"';
+  ctx.fillStyle='rgba(255,255,200,0.9)';
+  ctx.fillText('Takuto＆Yuka GOAL',CW/2,272);
+  if(Math.floor(fc/24)%2===0){
+    ctx.fillStyle='rgba(255,255,255,0.75)'; ctx.font='13px "Courier New"';
+    ctx.fillText('スペース / Aボタン でもう一度プレイ',CW/2,308);
+  }
+  ctx.textAlign='left';
+}
+
+/* ═══════════════════════════════════════════════
+   MAIN LOOP
+═══════════════════════════════════════════════ */
+function loop(){ update(); draw(); requestAnimationFrame(loop); }
+
+// 音声初期化（ユーザー操作後）
+['click','touchstart','keydown'].forEach(ev=>
+  document.addEventListener(ev,()=>getAC(),{once:true,passive:true}));
+
+loop();
+</script>
+
+<!-- jQuery + ハンバーガーメニュー制御 -->
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+<script>
+  $(function () {
+    $("#menuBtn").click(function () {
+      $(this).toggleClass("active");
+      $("#sideNav").toggleClass("active");
+      $("#menuOverlay").toggleClass("active");
+    });
+    $("#menuOverlay").click(function () {
+      $("#menuBtn").removeClass("active");
+      $("#sideNav").removeClass("active");
+      $(this).removeClass("active");
+    });
+    $("#sideNav a[href]").click(function () {
+      $("#menuBtn").removeClass("active");
+      $("#sideNav").removeClass("active");
+      $("#menuOverlay").removeClass("active");
+    });
+  });
+</script>
+</body>
+</html>
