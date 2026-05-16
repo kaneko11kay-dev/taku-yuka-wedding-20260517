@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photo Slideshow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Cinzel:wght@400;500&family=Noto+Serif+JP:wght@200;300&display=swap" rel="stylesheet">
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: #000;
+    overflow: hidden;
+    font-family: "Noto Serif JP", serif;
+  }
+
+  .slideshow {
+    position: fixed;
+    inset: 0;
+    background: #000;
+  }
+
+  /* 画像スロット（A/Bクロスフェード） */
+  .slide-layer {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 1.8s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: opacity;
+  }
+  .slide-layer.active { opacity: 1; }
+
+  .slide-layer img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    display: block;
+    transform-origin: center center;
+  }
+
+  /* ケンバーンズ */
+  @keyframes kenburns-in {
+    from { transform: scale(1.08) translate(1%, 0.5%); }
+    to   { transform: scale(1.0)  translate(0%,  0%);  }
+  }
+  @keyframes kenburns-pan {
+    from { transform: scale(1.06) translate(-1.5%, 0); }
+    to   { transform: scale(1.0)  translate(0%,    0); }
+  }
+  @keyframes kenburns-out {
+    from { transform: scale(1.0)  translate(0%, -0.5%); }
+    to   { transform: scale(1.06) translate(0%,  0%);   }
+  }
+
+  .slide-layer.active img {
+    animation-duration: 5.5s;
+    animation-timing-function: ease-out;
+    animation-fill-mode: both;
+  }
+  .slide-layer.kb-in   img { animation-name: kenburns-in; }
+  .slide-layer.kb-pan  img { animation-name: kenburns-pan; }
+  .slide-layer.kb-out  img { animation-name: kenburns-out; }
+
+  /* キャプション */
+  .caption-wrap {
+    position: absolute;
+    bottom: 9%;
+    width: 100%;
+    z-index: 20;
+    text-align: center;
+    pointer-events: none;
+  }
+
+  .caption-label {
+    display: inline-block;
+    font-family: "Cormorant Garamond", "Noto Serif JP", serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(1.4rem, 3.2vw, 2.4rem);
+    color: rgba(255,255,255,0.92);
+    letter-spacing: 0.12em;
+    text-shadow: 0 2px 24px rgba(0,0,0,0.5);
+    white-space: nowrap;
+  }
+
+  .caption-label .char {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .caption-label .char.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ══════════════════════════════════════
+     ハンバーガーメニュー
+  ══════════════════════════════════════ */
+
+  .sp-menu-btn_01 {
+    background: #2e2520;
+    border: 1px solid rgba(184,151,90,0.4);
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    width: 54px;
+    height: 54px;
+    cursor: pointer;
+    z-index: 9999;
+    border-radius: 50%;
+    transition: background 0.3s;
+  }
+  .sp-menu-btn_01:hover {
+    background: rgba(46,37,32,0.85);
+  }
+  .sp-menu-btn_01 .line {
+    display: block;
+    position: absolute;
+    width: 24px;
+    height: 1px;
+    right: 15px;
+    background: #d4b87a;
+    transition: 0.3s ease-in-out;
+  }
+  .sp-menu-btn_01 span:nth-child(1) { top: 18px; }
+  .sp-menu-btn_01 span:nth-child(2) { top: 26px; }
+  .sp-menu-btn_01 span:nth-child(3) { top: 34px; }
+
+  .sp-menu-btn_01.active span:nth-child(1) {
+    top: 26px;
+    transform: rotate(-45deg);
+  }
+  .sp-menu-btn_01.active span:nth-child(2) {
+    opacity: 0;
+  }
+  .sp-menu-btn_01.active span:nth-child(3) {
+    top: 26px;
+    transform: rotate(45deg);
+  }
+
+  .header__navi_01 {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(320px, 80vw);
+    height: 100vh;
+    background: #2e2520;
+    border-left: 1px solid rgba(184,151,90,0.25);
+    transform: translateX(100%);
+    transition: transform 0.5s cubic-bezier(0.77,0,0.18,1);
+    z-index: 9998;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 40px;
+  }
+  .header__navi_01.active {
+    transform: translateX(0);
+  }
+
+  .nav-logo {
+    font-family: 'Cinzel', serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: rgba(184,151,90,0.6);
+    margin-bottom: 48px;
+    text-align: center;
+  }
+
+  .header__navi_01 ul {
+    list-style: none;
+    text-align: left;
+  }
+  .header__navi_01 li {
+    border-bottom: 1px solid rgba(184,151,90,0.12);
+    padding: 0;
+  }
+  .header__navi_01 li:first-child {
+    border-top: 1px solid rgba(184,151,90,0.12);
+  }
+  .header__navi_01 li a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 0;
+    color: #faf7f2;
+    text-decoration: none;
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    transition: color 0.3s, padding-left 0.3s;
+  }
+  .header__navi_01 li a:hover {
+    color: #d4b87a;
+    padding-left: 6px;
+  }
+  .header__navi_01 li a::after {
+    content: '→';
+    font-size: 12px;
+    color: #b8975a;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .header__navi_01 li a:hover::after {
+    opacity: 1;
+  }
+
+  .nav-footer {
+    margin-top: 48px;
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: rgba(184,151,90,0.4);
+    text-align: center;
+    letter-spacing: 2px;
+  }
+
+  .menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(46,37,32,0.5);
+    backdrop-filter: blur(2px);
+    z-index: 9997;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+  }
+  .menu-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  @media (max-width: 520px) {
+    .sp-menu-btn_01 { right: 14px; top: 14px; }
+  }
+
+  .caption-index {
+    display: block;
+    margin-top: 10px;
+    font-family: "Cormorant Garamond", serif;
+    font-size: clamp(0.65rem, 1.4vw, 0.82rem);
+    letter-spacing: 0.35em;
+    color: rgba(255,255,255,0.38);
+  }
+</style>
+</head>
+
+<body>
+
+<!-- 背景暗幕 -->
+<div class="menu-overlay" id="menuOverlay"></div>
+
+<!-- スライドインナビ -->
+<nav class="header__navi_01" id="sideNav">
+  <p class="nav-logo">WEDDING INVITATION</p>
+  <ul>
+    <li><a href="index.html">Top</a></li>
+    <li><a href="quiz.html">Quiz</a></li>
+    <li><a href="wedding_quest.html">Game</a></li>
+  </ul>
+  <p class="nav-footer">May 17 · 2026</p>
+</nav>
+
+<!-- ハンバーガーボタン -->
+<button class="sp-menu-btn_01" id="menuBtn" aria-label="メニューを開く">
+  <span class="line"></span>
+  <span class="line"></span>
+  <span class="line"></span>
+</button>
+
+<div class="slideshow">
+
+  <div class="slide-layer" id="layer-a">
+    <img id="img-a" src="" alt="">
+  </div>
+  <div class="slide-layer" id="layer-b">
+    <img id="img-b" src="" alt="">
+  </div>
+
+  <div class="caption-wrap">
+    <span class="caption-label" id="caption-text"></span>
+    <span class="caption-index" id="caption-index"></span>
+  </div>
+
+</div>
+
+<script>
+  const slides = [
+    { img: "photo/1.jpeg",  text: "Yuka1" },
+    { img: "photo/2.jpeg",  text: "Yuka2" },
+    { img: "photo/3.jpeg",  text: "Yuka3" },
+    { img: "photo/4.jpeg",  text: "Yuka4" },
+    { img: "photo/5.jpeg",  text: "Taku1" },
+    { img: "photo/6.jpeg",  text: "Taku2" },
+    { img: "photo/7.jpeg",  text: "Taku3" },
+    { img: "photo/8.jpeg",  text: "Taku4" },
+    { img: "photo/9.jpeg",  text: "2ショット" },
+    { img: "photo/10.jpeg", text: "Yuka5" },
+  ];
+
+  const INTERVAL   = 5000;
+  const KB_EFFECTS = ["kb-in", "kb-pan", "kb-out"];
+
+  let index  = 0;
+  let active = "a";
+
+  const layers     = { a: document.getElementById("layer-a"), b: document.getElementById("layer-b") };
+  const imgs       = { a: document.getElementById("img-a"),   b: document.getElementById("img-b") };
+  const captionEl  = document.getElementById("caption-text");
+  const captionIdx = document.getElementById("caption-index");
+
+  function splitChars(text) {
+    captionEl.innerHTML = "";
+    [...text].forEach(ch => {
+      const span = document.createElement("span");
+      span.className = "char";
+      span.textContent = ch === " " ? "\u00a0" : ch;
+      captionEl.appendChild(span);
+    });
+  }
+
+  function revealChars() {
+    captionEl.querySelectorAll(".char").forEach((el, i) => {
+      setTimeout(() => el.classList.add("show"), 420 + i * 68);
+    });
+  }
+
+  function hideChars() {
+    captionEl.querySelectorAll(".char").forEach(el => el.classList.remove("show"));
+  }
+
+  function applyKB(layer, kbIndex) {
+    KB_EFFECTS.forEach(c => layer.classList.remove(c));
+    layer.classList.add(KB_EFFECTS[kbIndex % KB_EFFECTS.length]);
+  }
+
+  function showSlide() {
+    const next = active === "a" ? "b" : "a";
+    imgs[next].src = slides[index].img;
+    applyKB(layers[next], index % KB_EFFECTS.length);
+
+    hideChars();
+
+    setTimeout(() => {
+      layers[next].classList.add("active");
+      layers[active].classList.remove("active");
+      active = next;
+
+      splitChars(slides[index].text);
+      captionIdx.textContent = String(index + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+
+      setTimeout(revealChars, 350);
+      index = (index + 1) % slides.length;
+    }, 400);
+  }
+
+  function init() {
+    imgs["a"].src = slides[0].img;
+    applyKB(layers["a"], 0);
+    layers["a"].classList.add("active");
+
+    splitChars(slides[0].text);
+    captionIdx.textContent = "01 / " + String(slides.length).padStart(2, "0");
+    setTimeout(revealChars, 700);
+
+    index = 1;
+    setInterval(showSlide, INTERVAL);
+  }
+
+  init();
+</script>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+<script>
+  $(function () {
+    $("#menuBtn").click(function () {
+      $(this).toggleClass("active");
+      $("#sideNav").toggleClass("active");
+      $("#menuOverlay").toggleClass("active");
+    });
+    $("#menuOverlay").click(function () {
+      $("#menuBtn").removeClass("active");
+      $("#sideNav").removeClass("active");
+      $(this).removeClass("active");
+    });
+    $("#sideNav a[href]").click(function () {
+      $("#menuBtn").removeClass("active");
+      $("#sideNav").removeClass("active");
+      $("#menuOverlay").removeClass("active");
+    });
+  });
+</script>
+</body>
+</html>
