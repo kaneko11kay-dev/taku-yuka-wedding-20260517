@@ -18,7 +18,7 @@ html,body{width:100%;height:100%;background:#1a0a2e;overflow:hidden;touch-action
   width:512px;justify-content:space-around;flex-shrink:0;
   background:rgba(0,0,0,0.4);border-radius:4px 4px 0 0;
 }
-#ui-bar div{text-align:center;padding:2px 8px}
+#ui-bar div{text-align:center;padding:2px 4px}
 canvas{
   display:block;
   image-rendering:pixelated;image-rendering:crisp-edges;
@@ -1317,6 +1317,41 @@ function loop(){ update(); draw(); requestAnimationFrame(loop); }
   document.addEventListener(ev,()=>getAC(),{once:true,passive:true}));
 
 loop();
+</script>
+
+<!-- ── 画面サイズに合わせてキャンバスをフィット ── -->
+<script>
+(function(){
+  const GAME_W = 512, GAME_H = 448;
+  const canvas  = document.getElementById('c');
+  const uiBar   = document.getElementById('ui-bar');
+  const ctrl    = document.getElementById('ctrl');
+
+  function fitToScreen(){
+    const isTouch = 'ontouchstart' in window;
+    const ctrlH   = (isTouch && ctrl && ctrl.style.display !== 'none') ? 130 : 0;
+    const uiH     = uiBar.offsetHeight || 30;
+    const avW     = window.innerWidth;
+    const avH     = window.innerHeight - uiH - ctrlH;
+    const scale   = Math.min(avW / GAME_W, avH / GAME_H, 1); // 1 = 最大等倍
+    const cw      = Math.round(GAME_W * scale);
+    const ch      = Math.round(GAME_H * scale);
+    canvas.style.width  = cw + 'px';
+    canvas.style.height = ch + 'px';
+    uiBar.style.width   = cw + 'px';
+    // UI文字サイズをスケールに応じて縮小
+    uiBar.style.fontSize = Math.max(9, Math.round(13 * scale)) + 'px';
+  }
+
+  window.addEventListener('resize', fitToScreen);
+  window.addEventListener('orientationchange', () => setTimeout(fitToScreen, 150));
+  // 初期実行：DOM確定後
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', fitToScreen);
+  } else {
+    fitToScreen();
+  }
+})();
 </script>
 
 <!-- jQuery + ハンバーガーメニュー制御 -->
