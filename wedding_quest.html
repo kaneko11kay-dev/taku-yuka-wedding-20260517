@@ -1326,26 +1326,24 @@ loop();
   const ctrl    = document.getElementById('ctrl');
 
   function fitToScreen(){
-    const isTouch    = 'ontouchstart' in window;
-    const ctrlH      = (isTouch && ctrl && ctrl.style.display !== 'none') ? 150 : 0;
-    const avW        = window.innerWidth;
-    const avH        = window.innerHeight - ctrlH;
+    const avW   = window.innerWidth;
+    const avH   = window.innerHeight;
+    // モバイルボタンの実測高さ（非表示なら0）
+    const ctrlH = (ctrl && ctrl.style.display !== 'none') ? (ctrl.offsetHeight || 150) : 0;
 
-    // スケールは画面幅・高さ両方に収まる最大値（上限なし）
-    const scale = Math.min(avW / GAME_W, avH / TOTAL_H);
-
-    // wrapper を scale 変換：transform-origin:top left なので
-    // 画面中央に置くために left/top を手計算
+    // ゲームが収まる最大スケール（ボタン分を高さから除く）
+    const scale   = Math.min(avW / GAME_W, (avH - ctrlH) / TOTAL_H);
     const scaledW = GAME_W  * scale;
     const scaledH = TOTAL_H * scale;
-    const left    = (avW - scaledW) / 2;
-    const top     = (avH - scaledH) / 2;
+
+    // 水平中央、垂直はボタン上の空きの中央
+    const left = (avW - scaledW) / 2;
+    const top  = ((avH - ctrlH) - scaledH) / 2;
 
     wrapper.style.transform = `scale(${scale})`;
-    wrapper.style.left      = left  + 'px';
-    wrapper.style.top       = top   + 'px';
+    wrapper.style.left      = left + 'px';
+    wrapper.style.top       = top  + 'px';
 
-    // ui-bar のフォントサイズだけ補正（canvas 内描画には不要）
     uiBar.style.fontSize = Math.max(9, Math.round(13 * scale)) + 'px';
   }
 
