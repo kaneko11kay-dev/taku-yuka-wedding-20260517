@@ -1323,22 +1323,17 @@ loop();
     const avH = window.innerHeight;
 
     // ui-bar の実測高さ（初回は推定値 36 を使用）
-    const uiH  = uiBar.offsetHeight || 36;
-    // ゲームコンテンツ総高さ = ui-bar + canvas(border含む)
+    const uiH    = uiBar.offsetHeight || 36;
     const totalH = uiH + GAME_H + 6; // 6 = border 3px×2
 
-    // スマホ時：下部ボタン(#ctrl height=150px)がオーバーレイするので
-    // ゲームが隠れないよう、上半分の空き高さでスケールを決める
-    const ctrlH  = (ctrl && ctrl.style.display !== 'none') ? 150 : 0;
-    const usableH = avH - ctrlH;
-
-    const scale   = Math.min(avW / GAME_W, usableH / totalH);
+    // ボタンは常にオーバーレイ扱い → 画面全体でスケールを計算
+    const scale   = Math.min(avW / GAME_W, avH / totalH);
     const scaledW = GAME_W  * scale;
     const scaledH = totalH  * scale;
 
-    // 水平中央、垂直はボタン上の空きで中央
-    const left = (avW   - scaledW) / 2;
-    const top  = (usableH - scaledH) / 2;
+    // 画面中央に配置
+    const left = (avW - scaledW) / 2;
+    const top  = (avH - scaledH) / 2;
 
     wrapper.style.transform = `scale(${scale})`;
     wrapper.style.left      = left + 'px';
@@ -1348,7 +1343,7 @@ loop();
   }
 
   window.addEventListener('resize', fitToScreen);
-  window.addEventListener('orientationchange', () => setTimeout(fitToScreen, 200));
+  window.addEventListener('orientationchange', () => setTimeout(fitToScreen, 400));
 
   if(document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', fitToScreen);
